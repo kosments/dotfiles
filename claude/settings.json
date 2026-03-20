@@ -18,7 +18,7 @@
   "model": "haiku",
   "statusLine": {
     "type": "command",
-    "command": "bash /Users/kosments/.claude/statusline-command.sh"
+    "command": "bash ~/.config/claude/statusline-command.sh"
   },
   "skipDangerousModePermissionPrompt": true
 }

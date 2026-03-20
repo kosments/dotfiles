@@ -25,9 +25,9 @@ export LC_ALL=ja_JP.UTF-8
 STARTED=yes
 if [ -z "$STARTED" ]; then
   export STARTED=yes
-  LOG_PATH_START="/Users/kosments/dev/terminal-log/`date "+%Y-%m-%d_%H%M%S"`.log"
+  LOG_PATH_START="$HOME/dev/terminal-log/`date "+%Y-%m-%d_%H%M%S"`.log"
   exec script $LOG_PATH_START
-  trap 'ansifilter -i $LOG_PATH_START -o "/Users/kosments/dev/terminal-log/`date "+%Y-%m-%d_%H%M%S"`.log"; unset STARTED' EXIT
+  trap 'ansifilter -i $LOG_PATH_START -o "$HOME/dev/terminal-log/`date "+%Y-%m-%d_%H%M%S"`.log"; unset STARTED' EXIT
 fi
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
@@ -153,10 +153,10 @@ command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
 
 # Added by Windsurf
-export PATH="/Users/kosments/.codeium/windsurf/bin:$PATH"
+export PATH="$HOME/.codeium/windsurf/bin:$PATH"
 
 # pnpm
-export PNPM_HOME="/Users/kosments/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -169,14 +169,14 @@ export PATH=$PATH:$ANDROID_HOME/emulator
 export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="/Users/kosments/.rd/bin:$PATH"
+export PATH="$HOME/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 eval "$(starship init zsh)"
 
 # Added by Antigravity
-export PATH="/Users/kosments/.antigravity/antigravity/bin:$PATH"
+export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
 
 # Turso
-export PATH="$PATH:/Users/kosments/.turso"
+export PATH="$PATH:$HOME/.turso"
 eval "$(goenv init -)"
 eval "$(mise activate zsh)"

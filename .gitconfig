@@ -1,12 +1,11 @@
 # This is Git's per-user configuration file.
 [user]
 	name = kosments
-	email = koubsn@gmail.com
-# Please adapt and uncomment the following lines:
-#	name = kosments
-#	email = koubsn@gmail.com
+	# email is set in .gitconfig.local (not tracked in git)
+# Please adapt the following in .gitconfig.local:
+#	email = your-email@example.com
 [core]
-	excludesfile = /Users/kosments/.gitignore_global
+	excludesfile = ~/.gitignore_global
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
@@ -21,6 +20,6 @@
 [credential]
 	helper = cache --timeout=3600
 [ghq]
-	root = /Users/kosments/dev
+	root = ~/dev
 [init]
 	defaultBranch = master
