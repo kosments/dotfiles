@@ -1,0 +1,21 @@
+{
+  "folders": [
+    {
+      "path": "${userHome}/dev"
+    },
+    {
+      "path": "${userHome}/dotfiles"
+    }
+  ],
+  "settings": {
+    "files.watcherExclude": {
+      "**/.git/objects/**": true,
+      "**/node_modules/**": true,
+      "**/.turbo/**": true
+    },
+    "search.exclude": {
+      "**/node_modules": true,
+      "**/.turbo": true
+    }
+  }
+}
