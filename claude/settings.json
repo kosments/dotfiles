@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Read",
+      "Write",
+      "Edit",
+      "MultiEdit",
+      "Glob",
+      "Grep",
+      "WebFetch",
+      "Task",
+      "TodoWrite",
+      "NotebookEdit"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "model": "haiku",
+  "statusLine": {
+    "type": "command",
+    "command": "bash /Users/kosments/.claude/statusline-command.sh"
+  },
+  "skipDangerousModePermissionPrompt": true
+}

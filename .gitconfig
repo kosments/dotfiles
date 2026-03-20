@@ -1,0 +1,26 @@
+# This is Git's per-user configuration file.
+[user]
+	name = kosments
+	email = koubsn@gmail.com
+# Please adapt and uncomment the following lines:
+#	name = kosments
+#	email = koubsn@gmail.com
+[core]
+	excludesfile = /Users/kosments/.gitignore_global
+[difftool "sourcetree"]
+	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
+	path = 
+[mergetool "sourcetree"]
+	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	trustExitCode = true
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true
+[credential]
+	helper = cache --timeout=3600
+[ghq]
+	root = /Users/kosments/dev
+[init]
+	defaultBranch = master

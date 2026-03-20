@@ -1,0 +1,8 @@
+# Local settings (contains secrets)
+claude/settings.local.json
+
+# Cache
+.cache/
+
+# macOS
+.DS_Store
