@@ -1,10 +1,10 @@
 {
   "folders": [
     {
-      "path": "${userHome}/dev"
+      "path": "/Users/kosments/dev"
     },
     {
-      "path": "${userHome}/dotfiles"
+      "path": "/Users/kosments/dotfiles"
     }
   ],
   "settings": {
