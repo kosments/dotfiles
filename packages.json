@@ -1,0 +1,31 @@
+{
+  "$schema": "https://aka.ms/winget-packages.schema.2.0.json",
+  "CreationDate": "2026-05-10",
+  "Sources": [
+    {
+      "Packages": [
+        { "PackageIdentifier": "Git.Git" },
+        { "PackageIdentifier": "GitHub.cli" },
+        { "PackageIdentifier": "Microsoft.WindowsTerminal" },
+        { "PackageIdentifier": "Microsoft.VisualStudioCode" },
+        { "PackageIdentifier": "7zip.7zip" },
+        { "PackageIdentifier": "jqlang.jq" },
+        { "PackageIdentifier": "OpenJS.NodeJS.LTS" },
+        { "PackageIdentifier": "Python.Python.3.12" },
+        { "PackageIdentifier": "RancherDevelopment.RancherDesktop" },
+        { "PackageIdentifier": "twpayne.chezmoi" },
+        { "PackageIdentifier": "Starship.Starship" },
+        { "PackageIdentifier": "Amazon.AWSCLI" },
+        { "PackageIdentifier": "Helm.Helm" },
+        { "PackageIdentifier": "Kubernetes.kubectl" }
+      ],
+      "SourceDetails": {
+        "Argument": "https://cdn.winget.microsoft.com/cache",
+        "Identifier": "Microsoft.Winget.Source_8wekyb3d8bbwe",
+        "Name": "winget",
+        "Type": "Microsoft.PreIndexed.Package"
+      }
+    }
+  ],
+  "WinGetVersion": "1.6.0"
+}
