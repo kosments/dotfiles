@@ -21,10 +21,41 @@
 
 ### Shell 設定ポリシー
 
-- **ファイル分割**: `.zshenv` (環境変数), `.zshrc` (初期化・オプション)
-- **XDG標準化**: キャッシュは `~/.cache/zsh/`, 履歴は `~/.local/state/zsh/history`
-- **パフォーマンス**: lazy load で起動時間最適化（現在3.0s → 0.3s）
-- **参考リポジトリ**: radleylewis/zsh
+#### ファイル構成（Tier 1 & 2）
+- **`.zshenv`** (環境変数): XDG Base Directory、エディタ、PATH 設定
+- **`.zshrc`** (メイン初期化): オプション、プラグイン、source statements のみ
+- **`aliases.zsh`** (エイリアス): 100+ aliases（gcloud, kubectl, terraform, aws, git, glab等）
+- **`functions.zsh`** (関数): peco-*, K8s/GCP/AWS/Terraform ヘルパー、ユーティリティ
+- **`completion.zsh`** (補完設定): 将来移動予定（現在 .zshrc に含む）
+- **`.zshrc.local`** (ローカル秘密情報): gitignore'd、マシン固有設定・認証情報
+
+#### セキュリティモデル
+- 秘密情報（API キー、トークン、認証情報）は `.zshrc.local` に記述（gitignore'd）
+- 各マシンで独立して管理、リポジトリには含めない
+- テンプレート `.zshrc.local.example` で新規セットアップを支援
+
+#### パフォーマンス
+- Lazy load で起動時間最適化（3.0s → 0.3-0.6s）
+- Version manager init は初回使用時のみ（rbenv/pyenv/goenv）
+- Compinit キャッシュ使用（~/.cache/zsh/zcompdump）
+
+#### 技術スタック対応
+- **Cloud**: GCP (gcloud, gke), AWS (aws, cdk, awscli-local)
+- **Container**: Kubernetes (kubectl, kind, minikube), Docker, Podman
+- **IaC**: Terraform, CDK
+- **VCS**: Git, GitLab (glab), GitHub
+- **Monitoring**: New Relic, Sysdig, Prometheus/AlertManager
+- **CDN**: Akamai, Fastly
+- **Observability**: gcloud logging, CloudWatch等
+
+#### 参考リポジトリ
+- radleylewis/zsh (Tier 1 で参考)
+- ユーザーカスタマイズによる Tier 2 実装（本リポジトリ）
+
+#### コメント方針
+- 日本語・英語両言語対応（[JP]、[EN] タグで区分）
+- 各セクションに役割、意図、効果を明記
+- 将来メンテナ（or 将来の自分）が理解できるように詳細記述
 
 ## 基本コマンド
 
