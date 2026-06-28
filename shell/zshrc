@@ -63,8 +63,22 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 # ============================================================
 # Language Version Managers (Lazy Load)
 # ============================================================
-# Paths are configured in .zshenv
-# Lazy initialize version managers on first use (init only, not PATH)
+# Strategy: "Lazy load" - defer expensive initialization until needed
+#
+# Why:
+#   - pyenv/rbenv/goenv "init" commands are slow (~500ms each)
+#   - Only needed when actually using those languages
+#   - Saves 1-2 seconds of startup time
+#
+# How:
+#   - .zshenv: Already added pyenv/rbenv/goenv bin to PATH
+#   - This section: Define a function that initializes on first command invocation
+#   - Aliases intercept `python`, `ruby`, `go` calls and trigger initialization
+#
+# Effect:
+#   - First `python` call: 500ms (initialization happens)
+#   - Subsequent calls: Normal speed (function cleaned up after first run)
+#
 _init_version_managers() {
   if command -v pyenv >/dev/null; then
     eval "$(pyenv init -)"
@@ -75,8 +89,10 @@ _init_version_managers() {
   if command -v goenv >/dev/null; then
     eval "$(goenv init -)"
   fi
-  unset -f _init_version_managers
+  unset -f _init_version_managers  # Clean up function after first use
 }
+
+# Intercept language commands to trigger lazy initialization
 alias python='_init_version_managers; python'
 alias ruby='_init_version_managers; ruby'
 alias go='_init_version_managers; go'
@@ -92,6 +108,16 @@ fi
 # ============================================================
 # Plugin Manager (Zinit)
 # ============================================================
+# Purpose:
+#   - Zinit: Fast, lightweight plugin manager for zsh
+#   - Manages plugins without bloated frameworks (oh-my-zsh, etc.)
+#   - Annexes: Extensions that add features to plugin loading
+#
+# Strategy:
+#   - Auto-install if not present (one-time setup)
+#   - Use light-mode (no extra features, fast)
+#   - Load only essential annexes (as-monitor, bin-gem-node, patch-dl, rust)
+#
 if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
     print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
     command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
@@ -104,7 +130,11 @@ source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
 
-# Load annexes
+# Load annexes: Extensions for plugin management
+# - as-monitor: Monitor plugin loading progress
+# - bin-gem-node: Automatically install binaries from plugins
+# - patch-dl: Auto-patch plugins after download
+# - rust: Handle Rust-based plugin binaries
 zinit light-mode for \
     zdharma-continuum/zinit-annex-as-monitor \
     zdharma-continuum/zinit-annex-bin-gem-node \
@@ -114,11 +144,26 @@ zinit light-mode for \
 # ============================================================
 # Prompt (Starship)
 # ============================================================
+# Purpose:
+#   - Starship: Fast, modern shell prompt written in Rust
+#   - Shows git status, language versions, context, and custom styling
+#   - Configured via ~/.config/zsh/starship.toml
+#
 eval "$(starship init zsh)"
 
 # ============================================================
 # Completions (Tier 1 Optimization)
 # ============================================================
+# Purpose:
+#   - Completion system for tab-completion of commands, options, file paths
+#   - compinit: Initialize zsh completion system
+#
+# Why cached:
+#   - compinit scans all functions to build completion database
+#   - Without cache: ~1s per shell startup (expensive!)
+#   - With cache at ~/.cache/zsh/zcompdump: Fast subsequent startups
+#   - Cache invalidates automatically when plugin versions change
+#
 # Create cache directory if not exists
 mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
 
@@ -127,26 +172,37 @@ zinit ice wait'0'; zinit light zsh-users/zsh-completions
 autoload -Uz compinit
 compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
 
-# Make completion match lowercase to uppercase
+# UX: Make completion match lowercase to uppercase
+# Example: typing "doc" can complete to "Documents"
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
-# Menu selection for completions
+# UX: Interactive menu selection (select with arrow keys)
 zstyle ':completion:*:default' menu select=1
 
 # ============================================================
 # Plugins
 # ============================================================
-# Syntax highlighting
+# Purpose: Enhance shell experience with real-time feedback
+
+# Syntax highlighting: Colorize commands as you type
+# - Highlights valid commands, invalid ones, strings, comments, etc.
+# - Loaded via Zinit (deferred until shell ready)
 zinit light zsh-users/zsh-syntax-highlighting
 
-# Auto suggestions
+# Auto suggestions: Ghost text shows command history matches
+# - Press Ctrl+F to accept suggestion, or ignore and keep typing
+# - Helps discover previous commands and learn common patterns
 zinit light zsh-users/zsh-autosuggestions
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=244"
+ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=244"  # Gray text for suggestions (subtle)
 
 # ============================================================
 # Keybindings
 # ============================================================
-# History search (ctrl+R)
+# Purpose: Custom key bindings for faster navigation and command recall
+
+# Ctrl+R: Fuzzy history search via peco (better than Ctrl+R default)
+# - Shows unique commands only (deduped)
+# - Navigable with arrow keys, searchable by typing
 function peco-history-selection() {
   BUFFER=`history -n 1 | tac | awk '!a[$0]++' | peco`
   CURSOR=$#BUFFER
@@ -155,7 +211,10 @@ function peco-history-selection() {
 zle -N peco-history-selection
 bindkey '^R' peco-history-selection
 
-# Directory history (ctrl+E)
+# Ctrl+E: Fuzzy jump to recently visited directory
+# - Tracks directory navigation history (frequency + recency based)
+# - Allows quick return to commonly-used directories
+# - Cache stored in ~/.cache/chpwd-recent-dirs
 if [[ -n $(echo ${^fpath}/chpwd_recent_dirs(N)) && -n $(echo ${^fpath}/cdr(N)) ]]; then
   autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
   add-zsh-hook chpwd chpwd_recent_dirs
@@ -174,7 +233,9 @@ function peco-cdr () {
 zle -N peco-cdr
 bindkey '^E' peco-cdr
 
-# Find subdirectories (ctrl+X)
+# Ctrl+X: Fuzzy find and cd into subdirectory
+# - Searches all directories under current path
+# - Useful for navigating deep directory structures
 function find_cd() {
   local selected_dir=$(find . -type d | peco)
   if [ -n "$selected_dir" ]; then
@@ -185,7 +246,10 @@ function find_cd() {
 zle -N find_cd
 bindkey '^X' find_cd
 
-# Git repository search (ctrl+G)
+# Ctrl+G: Fuzzy jump to git repository
+# - Uses `ghq` (GitHub Quality) to manage cloned repos
+# - Searches in default ghq location (usually ~/ghq)
+# - Quick switch between projects
 function peco-src () {
   local selected_dir=$(ghq list -p | peco)
   if [ -n "$selected_dir" ]; then
@@ -199,29 +263,39 @@ bindkey '^G' peco-src
 # ============================================================
 # History Options (Tier 1 Optimization)
 # ============================================================
+# Purpose:
+#   - Keep command history searchable and clean
+#   - Share history across multiple zsh sessions
+#   - Reduce clutter from test commands and duplicates
+#
+# History file location (follows XDG spec)
 HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
-HISTSIZE=100000
-SAVEHIST=1000000
+HISTSIZE=100000       # Lines to keep in memory
+SAVEHIST=1000000      # Lines to save to disk (10x for long-term reference)
 
 # Create history directory if not exists
 mkdir -p "$(dirname "$HISTFILE")"
 
-# History management options
-setopt APPEND_HISTORY          # Append to history file instead of replacing
-setopt SHARE_HISTORY           # Share history between sessions
-setopt HIST_IGNORE_DUPS        # Don't record duplicate entries
-setopt HIST_IGNORE_SPACE       # Don't record if command starts with space
-setopt HIST_EXPIRE_DUPS_FIRST  # Expire oldest duplicate first
-setopt HIST_FIND_NO_DUPS       # Don't display duplicates in history search
-setopt HIST_SAVE_NO_DUPS       # Don't save duplicate lines
+# History behavior
+setopt APPEND_HISTORY          # Append to history file instead of replacing (safer)
+setopt SHARE_HISTORY           # Each session appends and reads from others (multi-terminal aware)
+
+# History deduplication
+setopt HIST_IGNORE_DUPS        # Skip duplicate entries (don't repeat same command)
+setopt HIST_IGNORE_SPACE       # Skip commands starting with space (private: `<space>password=secret`)
+setopt HIST_EXPIRE_DUPS_FIRST  # When full, delete oldest duplicate entry first
+setopt HIST_FIND_NO_DUPS       # history search (Ctrl+R) doesn't show duplicates
+setopt HIST_SAVE_NO_DUPS       # Don't write duplicate lines to disk
 
 # ============================================================
 # Shell Options (Tier 1 Optimization)
 # ============================================================
-setopt AUTO_CD               # Change directory without 'cd' command
-setopt AUTO_PARAM_KEYS       # Automatically insert closing bracket/quote
-setopt NOBEEP                # No beep on error
-setopt NUMERIC_GLOB_SORT     # Sort file10 after file9, not file1
+# Purpose: Quality-of-life improvements for interactive shell usage
+#
+setopt AUTO_CD               # Type directory name to cd into it (no 'cd' needed)
+setopt AUTO_PARAM_KEYS       # Auto-insert closing bracket/quote when needed
+setopt NOBEEP                # Suppress bell sound on errors (quieter experience)
+setopt NUMERIC_GLOB_SORT     # Numeric sort: file10 after file9, not after file1
 
 # ============================================================
 # Runtime Init (Lazy Load)
