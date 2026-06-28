@@ -1,150 +1,168 @@
-# dotfiles
+# 🚀 Dotfiles - Portable Terminal & Development Environment
 
-Personal dotfiles — Mac / Windows 共通管理。
-
-## 構成
-
-```
-dotfiles/
-├── bootstrap/
-│   ├── install.sh        # Mac: symlink設定（冪等）
-│   ├── install.ps1       # Windows: symlink設定（冪等）
-│   ├── brew.sh           # Mac: Brewfileパッケージ一括インストール
-│   ├── winget.ps1        # Windows: packages.jsonパッケージ一括インストール
-│   └── languages.sh      # Mac: 言語バージョン管理セットアップ
-├── shell/
-│   ├── zshrc             # Mac (.zshrc)
-│   └── profile.ps1       # Windows PowerShellプロファイル
-├── config/
-│   ├── aws/config        # AWS config（認証情報なし）
-│   ├── wezterm/          # Mac ターミナル設定
-│   ├── mise/config.toml  # mise設定
-│   └── vscode/           # VSCode設定（Windows共有）
-├── claude/               # Claude Code設定（共有）
-├── .gitconfig            # Git設定（共有）
-├── Brewfile              # Mac用パッケージリスト
-├── packages.json         # Windows用パッケージリスト（winget）
-├── verify.sh             # Mac動作確認
-└── verify.ps1            # Windows動作確認
-```
+**[日本語](#日本語) | [English](#english)**
 
 ---
 
-## Mac セットアップ
+## 日本語
 
-### Step 1: Git と Homebrew を入れる（未インストールの場合）
+### 📌 概要
 
-**Git** は Xcode Command Line Tools に含まれます：
+複数のマシン・環境で同じターミナル設定を使用できるポータブル dotfiles です。
 
-```bash
-xcode-select --install
-```
+- ローカル、SSH、Docker、VS Code DevContainer など、どの環境でも同じ設定で作業可能
+- 秘密情報は .zshrc.local で独立管理（git 記録なし）
+- 100+ エイリアス + 20+ ヘルパー関数
+- 技術スタック対応: gcloud, kubectl, terraform, aws, git, glab, newrelic 等
+- 起動時間最適化: 3.0s → 0.3-0.6s (90%削減)
 
-**Homebrew**:
+### 🎯 対応環境
 
-```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
+| 環境 | 対応 | 詳細 |
+|------|------|------|
+| **macOS Terminal** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
+| **Linux** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
+| **VS Code DevContainer** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
+| **SSH Remote** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
+| **Docker / Rancher** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
 
-### Step 2: dotfiles をクローンしてセットアップ
-
-```bash
-git clone https://github.com/kosments/dotfiles.git ~/dotfiles
-bash ~/dotfiles/bootstrap/install.sh
-bash ~/dotfiles/bootstrap/brew.sh
-bash ~/dotfiles/bootstrap/languages.sh
-```
-
-### Step 3: 動作確認
+### 🚀 クイックスタート
 
 ```bash
-bash ~/dotfiles/verify.sh
+# 1. クローン
+git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
+
+# 2. シンボリックリンク作成
+mkdir -p ~/.config/zsh
+ln -sf ~/.dotfiles/shell/zshrc ~/.zshrc
+ln -sf ~/.dotfiles/shell/zshenv ~/.zshenv
+
+# 3. ローカル設定作成（秘密情報）
+cp ~/.dotfiles/shell/.zshrc.local.example ~/.zshrc.local
+# ~/.zshrc.local を編集してAPI キーなどを設定
+
+# 4. 環境別セットアップ
+# 詳細は docs/ENVIRONMENTS.md を参照
 ```
 
-全項目 `✓` になれば完了。
+### 📁 ファイル構成
+
+```
+shell/
+├── .zshenv                        環境変数（XDG Base Directory 標準）
+├── .zshrc                         メイン初期化・プラグイン
+├── aliases.zsh                    100+ エイリアス定義
+├── functions.zsh                  20+ ヘルパー関数
+├── .zshrc.local.example           ローカル設定テンプレート（git除外）
+└── .tmux.conf                     tmux 設定（マルチ環境対応）
+
+docs/
+├── zsh-startup-optimization.md    起動時間最適化の詳細
+└── ENVIRONMENTS.md                環境別セットアップガイド
+```
+
+### 🔧 主要機能
+
+**100+ エイリアス**  
+gcloud, kubectl, terraform, aws, git, glab, newrelic, docker 等
+
+**20+ ヘルパー関数**  
+k-pod-shell, gcp-project, aws-profile, tf-plan-review 等
+
+**🔒 セキュリティ**  
+秘密情報は .zshrc.local で管理（git 記録なし）
+
+**⚡ パフォーマンス**  
+起動時間 90% 削減
+
+### 📚 詳細ドキュメント
+
+- [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) - macOS/Linux/Docker/SSH/DevContainer 環境別ガイド
+- [docs/zsh-startup-optimization.md](docs/zsh-startup-optimization.md) - 起動時間最適化の詳細
+- [shell/.zshrc.local.example](shell/.zshrc.local.example) - ローカル設定テンプレート
+
+### 🔄 カスタマイズ
+
+`.zshrc.local` にマシン固有の設定を追加：
+
+```bash
+# ~/.zshrc.local
+export AWS_PROFILE="my-profile"
+export GOOGLE_PROJECT_ID="my-project"
+
+alias myproject='cd ~/dev/my-project && ls'
+
+my-deploy() {
+  echo "Deploying to $1..."
+  # your deployment logic
+}
+```
+
+### 🐛 トラブルシューティング
+
+**起動が遅い場合**
+```bash
+time zsh -i -c exit
+```
+
+**エイリアスが効きません**
+```bash
+# 確認1: symlink 確認
+readlink ~/.zshrc
+
+# 確認2: シェル再起動
+exec zsh
+```
+
+### 📝 ファイル説明
+
+| ファイル | 役割 | 共有 |
+|---------|------|------|
+| .zshenv | 環境変数（全シェル） | ✅ |
+| .zshrc | 初期化・プラグイン | ✅ |
+| aliases.zsh | エイリアス | ✅ |
+| functions.zsh | ヘルパー関数 | ✅ |
+| .zshrc.local | 秘密情報・ローカル設定 | ❌ (gitignore) |
+| .tmux.conf | tmux 設定 | ✅ |
 
 ---
 
-## Windows セットアップ
+## English
 
-### Step 1: winget を確認する
+### 📌 Overview
 
-Windows 10/11 には **winget**（App Installer）が標準搭載されています。
+A portable dotfiles repository for consistent terminal configuration across multiple machines and environments.
 
-```powershell
-winget --version
-```
+- Work locally, over SSH, in Docker, VS Code DevContainer with the same setup
+- Secrets managed in .zshrc.local (not tracked by git)
+- 100+ aliases + 20+ helper functions
+- Tech stack support: gcloud, kubectl, terraform, aws, git, glab, newrelic, etc.
+- Startup time optimized: 3.0s → 0.3-0.6s
 
-表示されない場合は Microsoft Store で「App Installer」を検索してインストールしてください。
+### 🎯 Supported Environments
 
-### Step 2: Git をインストールする
+macOS, Linux, Docker, SSH, VS Code DevContainer, and more.
 
-```powershell
-winget install --id Git.Git -e --silent
-```
-
-インストール後、**PowerShell を再起動**してください。
-
-### Step 3: Developer Mode を有効化する（シンボリックリンクに必要）
-
-```powershell
-# 設定画面を開く
-start ms-settings:developers
-```
-
-「開発者モード」を ON にしてください。これにより管理者権限なしでシンボリックリンクを作成できます。
-
-### Step 4: dotfiles をクローンしてセットアップ
-
-```powershell
-git clone https://github.com/kosments/dotfiles.git "$HOME\dotfiles"
-Set-Location "$HOME\dotfiles"
-
-# 実行ポリシーを一時許可（初回のみ）
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-
-.\bootstrap\winget.ps1    # パッケージ一括インストール（要再起動の場合あり）
-.\bootstrap\install.ps1   # シンボリックリンク設定
-```
-
-### Step 5: 動作確認
-
-```powershell
-.\verify.ps1
-```
-
-全項目 `v` になれば完了。
-
----
-
-## セットアップ後の手動作業
-
-### Git メールアドレスの設定
-
-`.gitconfig` にメールアドレスは含まれていません。環境ごとにローカルで設定します：
+### 🚀 Quick Start
 
 ```bash
-git config --global user.email "your-email@example.com"
+git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
+mkdir -p ~/.config/zsh
+ln -sf ~/.dotfiles/shell/zshrc ~/.zshrc
+ln -sf ~/.dotfiles/shell/zshenv ~/.zshenv
+cp ~/.dotfiles/shell/.zshrc.local.example ~/.zshrc.local
 ```
 
-### AWS 認証情報
+### 📚 Documentation
 
-`~/.aws/credentials` は git 管理外です。手動で作成してください：
+- [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) - Environment-specific setup
+- [docs/zsh-startup-optimization.md](docs/zsh-startup-optimization.md) - Optimization details
 
-```
-[default]
-aws_access_key_id = YOUR_KEY
-aws_secret_access_key = YOUR_SECRET
-```
+### 🔒 Security
 
-### Claude Code ローカル設定
-
-`~/.config/claude/settings.local.json` は環境固有の設定（APIキーなど）を含むため dotfiles 対象外です。必要に応じて手動で作成してください。
+Manage secrets in `.zshrc.local` (gitignore'd). Each machine maintains independent configuration.
 
 ---
 
-## 運用ルール
+**MIT License**
 
-- **編集は `~/dotfiles` 配下で行う** — ホーム直下は symlink のみ
-- **秘密情報は含めない** — credentials・APIキー・メールは gitignore 済み
-- **`verify.sh` / `verify.ps1` で定期チェック** — 新ツール追加時は verify にも追記する
