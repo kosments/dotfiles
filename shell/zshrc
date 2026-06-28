@@ -298,11 +298,37 @@ setopt NOBEEP                # Suppress bell sound on errors (quieter experience
 setopt NUMERIC_GLOB_SORT     # Numeric sort: file10 after file9, not after file1
 
 # ============================================================
+# Modular Configuration Loading (Tier 2)
+# ============================================================
+# [JP] .zshrc はメイン初期化とsource statements のみに
+# [EN] .zshrc contains only main init and source statements
+
+# [JP] エイリアス読み込み
+# [EN] Load aliases
+if [ -f "$ZDOTDIR/aliases.zsh" ]; then
+  source "$ZDOTDIR/aliases.zsh"
+fi
+
+# [JP] 関数読み込み（ユーザー定義関数、peco-functions など）
+# [EN] Load custom functions
+if [ -f "$ZDOTDIR/functions.zsh" ]; then
+  source "$ZDOTDIR/functions.zsh"
+fi
+
+# [JP] 補完設定読み込み（将来用：compinit, zstyle など）
+# [EN] Load completion settings (future: will move compinit here)
+# if [ -f "$ZDOTDIR/completion.zsh" ]; then
+#   source "$ZDOTDIR/completion.zsh"
+# fi
+
+# ============================================================
 # Runtime Init (Lazy Load)
 # ============================================================
 # mise activate deferred to .zshrc.local if needed
 
-# Load local secrets and overrides (not committed to dotfiles)
+# [JP] ローカル設定読み込み（秘密情報、マシン固有設定）
+# [EN] Load local secrets and overrides (not committed to dotfiles)
+# Note: .zshrc.local is in .gitignore and contains credentials
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
 
 # Lazy initialize agent shell integration on first use

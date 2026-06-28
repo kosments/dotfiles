@@ -1,8 +1,96 @@
-# Local settings (contains secrets)
+# ============================================================
+# Secrets & Local Configuration
+# ============================================================
+# Claude Code local settings
 claude/settings.local.json
 
+# Zsh local configuration (machine-specific, credentials)
+# [JP] zshrc.local: マシン固有の設定・秘密情報（git対象外）
+# [EN] zshrc.local: Machine-specific config with credentials (not tracked)
+# Note: .zshrc.local.example IS tracked (template), but .zshrc.local is not
+.zshrc.local
+shell/.zshrc.local
+!.zshrc.local.example
+!shell/.zshrc.local.example
+
+# Git local configuration (contains email, credentials)
+.gitconfig.local
+
+# AWS credentials (managed locally)
+# [JP] AWS認証情報（ローカル管理）
+config/aws/credentials
+.aws/credentials
+.aws/config.local
+
+# Google Cloud credentials
+# [JP] Google Cloud認証情報
+config/gcloud/
+.config/gcloud/
+.google/credentials.json
+
+# Kubernetes config
+# [JP] Kubernetes設定（クレデンシャル含む）
+.kube/
+.kubeconfig*
+
+# Terraform
+# [JP] Terraform変数ファイル（秘密情報含む可能性）
+*.tfvars
+terraform.tfvars
+*.tfvars.json
+.terraform.tfstate*
+
+# New Relic
+# [JP] New Relic設定ファイル
+.newrelic/
+.newrelic-api-key
+
+# GitLab / GitHub tokens
+# [JP] VCS トークン（秘密情報）
+.glab-token
+.github-token
+.gitlab-token
+
+# Docker / Container
+# [JP] Docker設定、認証情報
+.docker/config.json
+.dockercfg
+
+# SSH keys & certificates
+# [JP] SSH秘密鍵・証明書
+.ssh/
+*.pem
+*.key
+*.crt
+
+# Environment files
+# [JP] 環境変数ファイル（秘密情報含む可能性）
+.env
+.env.local
+.env.*.local
+.env.production.local
+
+# Tool-specific
+# [JP] ツール固有のローカル設定
+.akamai/
+.fastly/
+.sysdig/
+.edgerc
+
+# ============================================================
+# Language Manager Cache
+# ============================================================
+# mise cache
+.mise-cache/
+
+# ============================================================
+# System & Editor
+# ============================================================
 # Cache
 .cache/
 
 # macOS
 .DS_Store
+
+# Logs
+*.log

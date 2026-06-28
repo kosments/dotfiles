@@ -1,0 +1,258 @@
+# ============================================================
+# Zsh Local Configuration Template (.zshrc.local)
+# ============================================================
+# [JP] ローカルマシンのみで使用する設定ファイル
+# [EN] Local machine-specific configuration (gitignore'd)
+#
+# Purpose:
+#   - API キー、トークン、クレデンシャル
+#   - ローカルマシン固有の環境変数
+#   - プロジェクト別デフォルト設定
+#   - 自動起動スクリプト
+#
+# Usage:
+#   1. このファイルをコピーして ~/.zshrc.local を作成
+#   2. ローカルの設定を追加
+#   3. .zshrc.local は .gitignore に含まれるため、git に記録されません
+#
+# Safety:
+#   - 秘密情報は絶対にこのリポジトリにコミットしないこと
+#   - ~/.zshrc.local は gitignore されています
+#   - Sync する際は、各マシンで独立して設定
+
+# ============================================================
+# Sensitive Credentials (NEVER COMMIT)
+# ============================================================
+# [JP] 秘密情報（絶対にコミットしないこと）
+# [EN] Keep these secret!
+
+# AWS
+# export AWS_PROFILE="your-profile"
+# export AWS_REGION="ap-northeast-1"
+# export AWS_ACCESS_KEY_ID="..."     # Use ~/.aws/credentials instead
+# export AWS_SECRET_ACCESS_KEY="..."
+
+# Google Cloud Platform
+# export GOOGLE_PROJECT_ID="your-project-id"
+# export GCLOUD_REGION="asia-northeast1"
+# export GOOGLE_APPLICATION_CREDENTIALS="$HOME/.config/gcloud/service-account.json"
+
+# GitHub
+# export GITHUB_TOKEN="ghp_..."  # GitHub Personal Access Token
+# export GITHUB_USER="your-username"
+
+# GitLab
+# export GITLAB_TOKEN="glpat-..."  # GitLab Personal Access Token
+# export GITLAB_HOST="gitlab.com"
+
+# New Relic
+# export NEWRELIC_API_KEY="NRAK-..."  # New Relic API key
+# export NEWRELIC_ACCOUNT_ID="123456"
+
+# Kubernetes / kubeconfig
+# export KUBECONFIG="$HOME/.kube/config:$HOME/.kube/dev:$HOME/.kube/staging"
+
+# Terraform
+# export TF_VAR_environment="dev"
+# export TF_VAR_region="ap-northeast-1"
+
+# Docker
+# export DOCKER_REGISTRY_USERNAME="your-username"
+# export DOCKER_REGISTRY_PASSWORD="your-password"
+
+# Sysdig
+# export SYSDIG_API_TOKEN="..."
+
+# Akamai
+# export AKAMAI_EDGERC="$HOME/.edgerc"
+
+# Fastly
+# export FASTLY_API_TOKEN="..."
+
+# ============================================================
+# AWS Configuration
+# ============================================================
+# [JP] AWS 設定
+# [EN] AWS settings
+
+# [JP] デフォルトプロファイルを dev に設定
+# [EN] Set default profile to dev
+# export AWS_PROFILE="dev"
+
+# [JP] AWS CLI 出力形式
+# [EN] AWS CLI output format
+# export AWS_DEFAULT_OUTPUT="table"
+
+# [JP] AWS CLI ページャー（bat を使用）
+# [EN] Use bat as AWS CLI pager
+# export AWS_PAGER="bat -l json"
+
+# ============================================================
+# GCP Configuration
+# ============================================================
+# [JP] GCP 設定
+# [EN] GCP settings
+
+# [JP] デフォルトプロジェクト
+# [EN] Default GCP project
+# export GOOGLE_CLOUD_PROJECT="your-project-id"
+
+# [JP] デフォルトリージョン
+# [EN] Default region
+# export CLOUDSDK_COMPUTE_REGION="asia-northeast1"
+# export CLOUDSDK_COMPUTE_ZONE="asia-northeast1-a"
+
+# [JP] GCP CLI キャッシュディレクトリ
+# [EN] gcloud cache directory
+# export GCLOUD_CACHE_DIR="$HOME/.cache/gcloud"
+
+# ============================================================
+# Kubernetes Configuration
+# ============================================================
+# [JP] Kubernetes 設定
+# [EN] Kubernetes settings
+
+# [JP] デフォルトコンテキスト（自動設定 or 手動選択）
+# [EN] Default Kubernetes context
+# export KUBECONFIG="$HOME/.kube/config"
+# kubectl config use-context your-context
+
+# [JP] kubectl エイリアス補完
+# [EN] kubectl completion
+# if command -v kubectl >/dev/null; then
+#   source <(kubectl completion zsh)
+#   complete -o default -F __start_kubectl k
+# fi
+
+# ============================================================
+# Git Configuration
+# ============================================================
+# [JP] Git 設定
+# [EN] Git settings
+
+# [JP] 署名用GPG鍵
+# [EN] GPG key for signing commits
+# export GPG_KEY_ID="XXXXXXXX"
+# git config --global user.signingkey "$GPG_KEY_ID"
+# git config --global commit.gpgsign true
+
+# [JP] Git global config
+# [EN] Git global settings
+# git config --global user.email "your-email@example.com"
+# git config --global user.name "Your Name"
+
+# ============================================================
+# Terraform Configuration
+# ============================================================
+# [JP] Terraform 設定
+# [EN] Terraform settings
+
+# [JP] Terraform バックエンド（GCS、S3、local など）
+# [EN] Terraform backend selection
+# export TF_BACKEND="gs://your-bucket/terraform"
+
+# [JP] Terraform ログレベル
+# [EN] Terraform logging
+# export TF_LOG="DEBUG"
+# export TF_LOG_PATH="$HOME/.terraform.log"
+
+# ============================================================
+# Development Tools
+# ============================================================
+# [JP] 開発ツール設定
+# [EN] Development tools
+
+# [JP] Node.js バージョン（mise で管理する場合）
+# [EN] Node.js version (if using mise)
+# export NODE_VERSION="20.0.0"
+
+# [JP] Python バージョン（pyenv で管理する場合）
+# [EN] Python version (if using pyenv)
+# export PYTHON_VERSION="3.11.0"
+
+# [JP] Ruby バージョン（rbenv で管理する場合）
+# [EN] Ruby version (if using rbenv)
+# export RUBY_VERSION="3.2.0"
+
+# ============================================================
+# Custom Aliases (Machine-specific)
+# ============================================================
+# [JP] マシン固有のエイリアス
+# [EN] Machine-specific aliases
+
+# [JP] 例: 開発プロジェクトへの高速ナビゲーション
+# [EN] Example: Quick navigation to dev projects
+# alias myproject='cd ~/dev/02_repos/my-project && ls'
+
+# [JP] 例: 頻繁に使う長いコマンド
+# [EN] Example: Shortcut for long commands
+# alias deploy-prod='cd ~/terraform/prod && tf-plan-review'
+
+# ============================================================
+# Custom Functions (Machine-specific)
+# ============================================================
+# [JP] マシン固有の関数
+# [EN] Machine-specific functions
+
+# [JP] 例: AWS にデプロイ
+# [EN] Example: Custom AWS deploy function
+# function deploy-to-aws() {
+#   local env=${1:-dev}
+#   echo "[JP] AWS ($env環境) にデプロイします..."
+#   echo "[EN] Deploying to AWS ($env environment)..."
+#   aws-profile
+#   # ... your deployment logic
+# }
+
+# [JP] 例: ローカル Kubernetes クラスタ起動
+# [EN] Example: Start local Kubernetes cluster
+# function start-k8s() {
+#   if [ "$1" = "kind" ]; then
+#     kind create cluster --name dev
+#   elif [ "$1" = "minikube" ]; then
+#     minikube start
+#   fi
+# }
+
+# ============================================================
+# Auto-run on Shell Startup
+# ============================================================
+# [JP] シェル起動時の自動実行
+# [EN] Auto-run on shell startup
+
+# [JP] 例: 起動時に AWS プロファイルを表示
+# [EN] Example: Show AWS profile on startup
+# echo "[JP] AWS Profile: $(aws sts get-caller-identity --query 'Account' --output text)"
+
+# [JP] 例: GCP プロジェクトを確認
+# [EN] Example: Confirm GCP project
+# if command -v gcloud >/dev/null; then
+#   echo "[JP] GCP Project: $(gcloud config get-value project)"
+# fi
+
+# [JP] 例: Kubernetes コンテキストを確認
+# [EN] Example: Show Kubernetes context
+# if command -v kubectl >/dev/null; then
+#   echo "[JP] Kubernetes Context: $(kubectl config current-context)"
+# fi
+
+# ============================================================
+# Notes
+# ============================================================
+# [JP] 注意
+# [EN] Notes:
+#
+# 1. .zshrc.local は ~/.zshrc から自動的に読み込まれます
+#    .zshrc.local is automatically sourced from ~/.zshrc
+#
+# 2. このファイルは .gitignore に含まれているため、git に記録されません
+#    This file is in .gitignore and will NOT be committed
+#
+# 3. マシンを新しくセットアップする際は、このファイルをコピーして設定してください
+#    When setting up a new machine, copy this file and customize it
+#
+# 4. 複数のマシンで使用する場合、各マシンで独立して管理してください
+#    When using multiple machines, manage this file independently on each one
+#
+# 5. 本当に秘密情報は含めないこと！環境変数またはクレデンシャルファイルを使用してください
+#    Really keep this file secret! Use env vars or credential files instead!
