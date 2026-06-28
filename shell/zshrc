@@ -19,9 +19,10 @@ fi
 # Progate (removed duplicate)
 export PATH=$HOME/.progate/bin:$PATH
 
-# rbenv
-export PATH="/opt/homebrew/bin/rbenv/bin:$PATH"
-eval "$(rbenv init -)"
+# rbenv (lazy load - init on first use)
+if [ -d "/opt/homebrew/bin/rbenv" ]; then
+  export PATH="/opt/homebrew/bin/rbenv/bin:$PATH"
+fi
 
 # ServBay
 if [ -d "/Applications/ServBay/bin" ]; then
@@ -58,6 +59,16 @@ if [ -d "$HOME/.antigravity/antigravity/bin" ]; then
   export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
 fi
 
+# Cursor Agent CLI
+if [ -d "$HOME/.local/bin" ]; then
+  export PATH="$HOME/.local/bin:$PATH"
+fi
+
+# agent: デフォルトで auto-run（unrestricted）+ MCP サーバー自動承認
+agent() {
+  command "$HOME/.local/bin/agent" --approve-mcps "$@"
+}
+
 # Turso
 if [ -d "$HOME/.turso" ]; then
   export PATH="$PATH:$HOME/.turso"
@@ -69,14 +80,34 @@ fi
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
 # ============================================================
-# Language Version Managers
+# Language Version Managers (Lazy Load)
 # ============================================================
 export PYENV_ROOT="$HOME/.pyenv"
-if ! command -v pyenv >/dev/null; then
+if [ -d "$PYENV_ROOT/bin" ]; then
   export PATH="$PYENV_ROOT/bin:$PATH"
 fi
-eval "$(pyenv init -)"
-eval "$(goenv init -)"
+
+export GOENV_ROOT="$HOME/.goenv"
+if [ -d "$GOENV_ROOT/bin" ]; then
+  export PATH="$GOENV_ROOT/bin:$PATH"
+fi
+
+# Lazy initialize version managers on first use
+_init_version_managers() {
+  if command -v pyenv >/dev/null; then
+    eval "$(pyenv init -)"
+  fi
+  if command -v rbenv >/dev/null; then
+    eval "$(rbenv init -)"
+  fi
+  if command -v goenv >/dev/null; then
+    eval "$(goenv init -)"
+  fi
+  unset -f _init_version_managers
+}
+alias python='_init_version_managers; python'
+alias ruby='_init_version_managers; ruby'
+alias go='_init_version_managers; go'
 
 # ============================================================
 # Cloud & DevTools
@@ -205,13 +236,26 @@ setopt AUTO_CD
 setopt AUTO_PARAM_KEYS
 
 # ============================================================
-# Runtime Init (mise, etc.)
+# Runtime Init (Lazy Load)
 # ============================================================
-eval "$(mise activate zsh)"
+# mise activate deferred to .zshrc.local if needed
 
-# Load local secrets (not committed to dotfiles)
+# Load local secrets and overrides (not committed to dotfiles)
 [[ -f ~/.zshrc.local ]] && source ~/.zshrc.local
+
+# Lazy initialize agent shell integration on first use
+if [ -f ~/.local/bin/agent ]; then
+  _init_agent_integration() {
+    eval "$(~/.local/bin/agent shell-integration zsh)"
+    unset -f _init_agent_integration
+  }
+fi
 
 ### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
 export PATH="/Users/kosments/.rd/bin:$PATH"
 ### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
+
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:/Users/kosments/.lmstudio/bin"
+# End of LM Studio CLI section
+
