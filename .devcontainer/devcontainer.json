@@ -1,0 +1,58 @@
+{
+  "name": "Dotfiles + nvim + tmux + Claude Code",
+  "image": "mcr.microsoft.com/devcontainers/universal:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:latest": {
+      "version": "20"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "neovim.nvim",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.remote-ssh",
+        "ms-vscode.remote-explorer"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh",
+            "args": ["-l"]
+          }
+        },
+        "editor.wordWrap": "on",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/dotfiles,target=/home/vscode/.dotfiles,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+  ],
+  "forwardPorts": [
+    3000,
+    8080,
+    9090
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Web Preview",
+      "onAutoForward": "notify"
+    }
+  },
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "TERM": "xterm-256color",
+    "COLORTERM": "truecolor"
+  },
+  "postCreateCommand": "bash .devcontainer/setup-advanced.sh",
+  "postStartCommand": "zsh -c 'source ~/.zshrc && echo ✅ DevContainer initialized'"
+}

@@ -194,6 +194,312 @@ echo "✅ DevContainer setup complete!"
 ]
 ```
 
+### Advanced: nvim + tmux + Claude Code CLI
+
+**ユースケース**: VS Code DevContainer内で nvim, tmux, Claude Code CLIを同時に利用
+
+#### 詳細な devcontainer.json
+
+```json
+{
+  "name": "Dotfiles + nvim + tmux + Claude Code",
+  "image": "mcr.microsoft.com/devcontainers/universal:latest",
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/node:latest": {
+      "version": "20"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "neovim.nvim",
+        "ms-vscode-remote.remote-containers",
+        "ms-vscode-remote.remote-ssh",
+        "ms-vscode.remote-explorer"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/bin/zsh",
+            "args": ["-l"]
+          }
+        },
+        "editor.wordWrap": "on",
+        "editor.formatOnSave": true
+      }
+    }
+  },
+  "mounts": [
+    "source=${localEnv:HOME}/dotfiles,target=/home/vscode/.dotfiles,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+  ],
+  "forwardPorts": [
+    3000,
+    8080,
+    9090
+  ],
+  "portsAttributes": {
+    "3000": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    },
+    "8080": {
+      "label": "Web Preview",
+      "onAutoForward": "notify"
+    }
+  },
+  "remoteUser": "vscode",
+  "remoteEnv": {
+    "TERM": "xterm-256color",
+    "COLORTERM": "truecolor"
+  },
+  "postCreateCommand": "bash .devcontainer/setup-advanced.sh",
+  "postStartCommand": "zsh -c 'source ~/.zshrc && echo ✅ DevContainer initialized'"
+}
+```
+
+#### 詳細な setup-advanced.sh
+
+```bash
+#!/bin/bash
+set -e
+
+echo "🔧 Advanced DevContainer Setup: nvim + tmux + Claude Code CLI"
+
+# ============================================================
+# 1. 基本ツールのインストール
+# ============================================================
+echo "📦 Installing base tools..."
+apt-get update
+apt-get install -y \
+    zsh tmux neovim git fzf ripgrep eza peco \
+    curl wget build-essential \
+    openssh-client \
+    python3 python3-pip python3-dev \
+    nodejs npm
+
+# ============================================================
+# 2. Claude Code CLI のインストール
+# ============================================================
+echo "🤖 Installing Claude Code CLI..."
+npm install -g @anthropic-ai/claude-code-cli 2>/dev/null || true
+
+# 認証初期化スクリプト
+cat > /tmp/claude-code-init.sh << 'CLAUDE_INIT'
+#!/bin/bash
+# Claude Code CLI 初期化
+echo "🔐 Claude Code CLI setup"
+echo "Run this in VS Code terminal to authenticate:"
+echo "  ! claude auth login"
+CLAUDE_INIT
+chmod +x /tmp/claude-code-init.sh
+
+# ============================================================
+# 3. dotfiles のセットアップ
+# ============================================================
+echo "🔗 Setting up dotfiles..."
+
+# dotfiles ディレクトリを確認
+if [ ! -d ~/.dotfiles ]; then
+    if [ -d /home/vscode/.dotfiles ]; then
+        export DOTFILES_PATH=/home/vscode/.dotfiles
+    else
+        git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
+        export DOTFILES_PATH=~/.dotfiles
+    fi
+else
+    export DOTFILES_PATH=~/.dotfiles
+fi
+
+# zsh 設定をシンボリックリンク
+mkdir -p ~/.config/zsh
+ln -sf $DOTFILES_PATH/shell/zshenv ~/.zshenv
+ln -sf $DOTFILES_PATH/shell/zshrc ~/.zshrc
+ln -sf $DOTFILES_PATH/shell/zshrc ~/.config/zsh/.zshrc
+
+# tmux 設定（.tmux.conf がある場合）
+if [ -f $DOTFILES_PATH/shell/.tmux.conf ]; then
+    ln -sf $DOTFILES_PATH/shell/.tmux.conf ~/.tmux.conf
+fi
+
+# ============================================================
+# 4. ローカル設定テンプレートの作成
+# ============================================================
+echo "📝 Creating local configuration template..."
+
+if [ ! -f ~/.zshrc.local ]; then
+    cp $DOTFILES_PATH/shell/.zshrc.local.example ~/.zshrc.local
+    
+    # DevContainer 用カスタマイズ
+    cat >> ~/.zshrc.local << 'LOCAL_CONFIG'
+
+# ============================================================
+# [DevContainer] VS Code 統合設定
+# ============================================================
+# [JP] VS Code DevContainer 内での追加設定
+# [EN] Additional settings for VS Code DevContainer
+
+# Claude Code CLI 設定
+export ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"  # 必要に応じて設定
+
+# コンテナ内の tmux・nvim パス
+export EDITOR=nvim
+export VISUAL=nvim
+
+# tmux セッション自動作成（オプション）
+# [JP] VS Code ターミナルで tmux セッションを自動作成
+# [EN] Auto-create tmux session in VS Code terminal
+if [[ -z "$TMUX" ]] && [[ "$TERM_PROGRAM" != "vscode" ]]; then
+    tmux new-session -d -s main -x 200 -y 50
+    tmux attach-session -t main
+fi
+
+# DevContainer ホスト用エイリアス
+alias claude='claude-code'  # Claude Code CLI
+alias nvim-edit='nvim .'    # 現在のディレクトリを nvim で開く
+
+# ============================================================
+# [DevContainer] Git 設定（コンテナ内）
+# ============================================================
+# コンテナ内で Git が必要な場合のセットアップ
+# [JP] SSH キーフォワード: ~/.ssh がマウントされていることを確認
+# [EN] SSH key forwarding: Ensure ~/.ssh is mounted via devcontainer.json
+
+LOCAL_CONFIG
+fi
+
+# ============================================================
+# 5. シェルをzshに変更
+# ============================================================
+echo "🐚 Setting default shell to zsh..."
+if ! grep -q "^vscode:/bin/zsh" /etc/passwd 2>/dev/null; then
+    chsh -s /bin/zsh || true
+fi
+
+# ============================================================
+# 6. nvim プラグイン初期化（オプション）
+# ============================================================
+echo "📝 Initializing nvim..."
+
+# nvim config が別リポジトリの場合
+if [ ! -d ~/.config/nvim ]; then
+    echo "⚠️  nvim config not found. To setup LazyVim:"
+    echo "  git clone https://github.com/LazyVim/starter ~/.config/nvim"
+    echo "  nvim"
+fi
+
+# ============================================================
+# 7. tmux 設定確認
+# ============================================================
+echo "🎯 Checking tmux configuration..."
+if [ -f ~/.tmux.conf ]; then
+    echo "✅ tmux.conf found"
+    tmux -c ~/.tmux.conf source-file ~/.tmux.conf 2>/dev/null || true
+else
+    echo "⚠️  tmux.conf not found. Create ~/.dotfiles/shell/.tmux.conf or use defaults"
+fi
+
+# ============================================================
+# 8. バージョン確認
+# ============================================================
+echo ""
+echo "✅ Setup Complete! Versions:"
+echo "  zsh: $(zsh --version)"
+echo "  tmux: $(tmux -V)"
+echo "  nvim: $(nvim --version | head -1)"
+echo "  node: $(node --version)"
+echo "  npm: $(npm --version)"
+echo ""
+echo "📌 Next steps:"
+echo "  1. Run: ! claude auth login (if using Claude Code CLI)"
+echo "  2. Run: nvim to initialize LazyVim"
+echo "  3. Edit ~/.zshrc.local with API keys, tokens, etc."
+echo "  4. Run: source ~/.zshrc"
+```
+
+#### 利用開始手順
+
+**1. リポジトリにファイルを配置**
+
+```bash
+# プロジェクトルートに .devcontainer ディレクトリを作成
+mkdir -p .devcontainer
+cp docs/templates/devcontainer.json .devcontainer/
+cp docs/templates/setup-advanced.sh .devcontainer/
+```
+
+**2. VS Code で DevContainer を開く**
+
+```bash
+# Command Palette (Cmd+Shift+P / Ctrl+Shift+P)
+> Dev Containers: Reopen in Container
+```
+
+**3. Claude Code CLI で認証**
+
+```bash
+# VS Code ターミナル内で
+! claude auth login
+
+# または
+claude auth login
+```
+
+**4. ローカル設定を編集**
+
+```bash
+# コンテナ内のターミナル
+nvim ~/.zshrc.local
+
+# 以下を設定:
+# - AWS_PROFILE, AWS_REGION
+# - GOOGLE_PROJECT_ID
+# - ANTHROPIC_API_KEY (Claude Code CLI用)
+# - API トークン（GitHub, GitLab等）
+```
+
+**5. tmux セッションを開始（オプション）**
+
+```bash
+# ターミナル内で
+tmux new-session -s work
+
+# または既存セッションにアタッチ
+tmux attach-session -s main
+```
+
+#### DevContainer 内での操作例
+
+```bash
+# nvim で編集
+nvim ./src/main.py
+
+# tmux でウィンドウ分割
+# Ctrl+b + %  (横分割)
+# Ctrl+b + "  (縦分割)
+
+# Claude Code CLI で作業
+! claude code review src/
+
+# zsh alias を使用
+k get pods
+tf plan
+git stash
+```
+
+#### トラブルシューティング
+
+| 問題 | 原因 | 対策 |
+|------|------|------|
+| **nvim が遅い** | LazyVim 初回起動時 | `nvim` を実行して プラグイン同期完了を待つ |
+| **tmux の色が出ない** | TERM 設定不足 | `export COLORTERM=truecolor` を実行 |
+| **Claude Code CLI が見つからない** | npm インストール失敗 | `npm install -g @anthropic-ai/claude-code-cli` を実行 |
+| **SSH キーが使えない** | .ssh マウント不足 | devcontainer.json に `.ssh` のマウント設定を追加 |
+| **Git 認証が失敗** | SSH エージェント不足 | SSH キーエージェントフォワード設定を確認 |
+
 ---
 
 ## SSH Remote Server
