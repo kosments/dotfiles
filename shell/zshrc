@@ -1,28 +1,17 @@
 # ============================================================
-# Language & Locale
+# NOTE: Language, Locale, XDG directories, and base PATH are in .zshenv
 # ============================================================
-export LANG=ja_JP.UTF-8
-export LC_ALL=ja_JP.UTF-8
 
 # ============================================================
-# PATH Setup
+# PATH Setup (Additional Tools)
 # ============================================================
-export PATH=/opt/homebrew/bin:$PATH
-export VOLTA_HOME="$HOME/.volta"
-export PATH="$VOLTA_HOME/bin:$PATH"
-
 # Python 3.10
 if [ -d "/opt/homebrew/opt/python@3.10/libsec/bin" ]; then
   export PATH=/opt/homebrew/opt/python@3.10/libsec/bin:$PATH
 fi
 
-# Progate (removed duplicate)
+# Progate
 export PATH=$HOME/.progate/bin:$PATH
-
-# rbenv (lazy load - init on first use)
-if [ -d "/opt/homebrew/bin/rbenv" ]; then
-  export PATH="/opt/homebrew/bin/rbenv/bin:$PATH"
-fi
 
 # ServBay
 if [ -d "/Applications/ServBay/bin" ]; then
@@ -34,20 +23,12 @@ if [ -d "$HOME/.codeium/windsurf/bin" ]; then
   export PATH="$HOME/.codeium/windsurf/bin:$PATH"
 fi
 
-# pnpm
-export PNPM_HOME="$HOME/Library/pnpm"
-if [[ ! ":$PATH:" =~ ":$PNPM_HOME:" ]]; then
-  export PATH="$PNPM_HOME:$PATH"
-fi
+# pnpm (configured in .zshenv)
 
-# Android
-export ANDROID_HOME=$HOME/Library/Android/sdk
+# Android & Java paths (base exports in .zshenv, extend here if needed)
 export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
 export PATH=$PATH:$ANDROID_HOME/platform-tools
 export PATH=$PATH:$ANDROID_HOME/emulator
-
-# Java
-export JAVA_HOME=$(/usr/libexec/java_home -v 17)
 
 # Rancher Desktop
 if [ -d "$HOME/.rd/bin" ]; then
@@ -82,17 +63,8 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 # ============================================================
 # Language Version Managers (Lazy Load)
 # ============================================================
-export PYENV_ROOT="$HOME/.pyenv"
-if [ -d "$PYENV_ROOT/bin" ]; then
-  export PATH="$PYENV_ROOT/bin:$PATH"
-fi
-
-export GOENV_ROOT="$HOME/.goenv"
-if [ -d "$GOENV_ROOT/bin" ]; then
-  export PATH="$GOENV_ROOT/bin:$PATH"
-fi
-
-# Lazy initialize version managers on first use
+# Paths are configured in .zshenv
+# Lazy initialize version managers on first use (init only, not PATH)
 _init_version_managers() {
   if command -v pyenv >/dev/null; then
     eval "$(pyenv init -)"
@@ -145,10 +117,15 @@ zinit light-mode for \
 eval "$(starship init zsh)"
 
 # ============================================================
-# Completions
+# Completions (Tier 1 Optimization)
 # ============================================================
+# Create cache directory if not exists
+mkdir -p "${XDG_CACHE_HOME:-$HOME/.cache}/zsh"
+
+# Load completions with cache optimization
 zinit ice wait'0'; zinit light zsh-users/zsh-completions
-autoload -Uz compinit && compinit
+autoload -Uz compinit
+compinit -d "${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
 
 # Make completion match lowercase to uppercase
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
@@ -220,20 +197,31 @@ zle -N peco-src
 bindkey '^G' peco-src
 
 # ============================================================
-# History Options
+# History Options (Tier 1 Optimization)
 # ============================================================
-HISTFILE=$ZDOTDIR/.zsh-history
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
 HISTSIZE=100000
 SAVEHIST=1000000
 
-setopt inc_append_history
-setopt share_history
+# Create history directory if not exists
+mkdir -p "$(dirname "$HISTFILE")"
+
+# History management options
+setopt APPEND_HISTORY          # Append to history file instead of replacing
+setopt SHARE_HISTORY           # Share history between sessions
+setopt HIST_IGNORE_DUPS        # Don't record duplicate entries
+setopt HIST_IGNORE_SPACE       # Don't record if command starts with space
+setopt HIST_EXPIRE_DUPS_FIRST  # Expire oldest duplicate first
+setopt HIST_FIND_NO_DUPS       # Don't display duplicates in history search
+setopt HIST_SAVE_NO_DUPS       # Don't save duplicate lines
 
 # ============================================================
-# Shell Options
+# Shell Options (Tier 1 Optimization)
 # ============================================================
-setopt AUTO_CD
-setopt AUTO_PARAM_KEYS
+setopt AUTO_CD               # Change directory without 'cd' command
+setopt AUTO_PARAM_KEYS       # Automatically insert closing bracket/quote
+setopt NOBEEP                # No beep on error
+setopt NUMERIC_GLOB_SORT     # Sort file10 after file9, not file1
 
 # ============================================================
 # Runtime Init (Lazy Load)

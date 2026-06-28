@@ -1,0 +1,100 @@
+# ============================================================
+# Zsh Environment Variables (.zshenv)
+# ============================================================
+# This file is sourced on every invocation of zsh
+# Use only for environment variables, not shell options or aliases
+
+# ============================================================
+# XDG Base Directory Specification
+# ============================================================
+# Centralizes config, cache, and data locations
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+
+# ============================================================
+# Zsh-Specific Directories
+# ============================================================
+export ZDOTDIR="${XDG_CONFIG_HOME}/zsh"
+export HISTFILE="$XDG_STATE_HOME/zsh/history"
+
+# ============================================================
+# Language & Locale
+# ============================================================
+export LANG=ja_JP.UTF-8
+export LC_ALL=ja_JP.UTF-8
+
+# ============================================================
+# Editor & Pager
+# ============================================================
+export EDITOR="nvim"
+export VISUAL="nvim"
+
+# Use bat as pager for man pages if available
+if command -v bat >/dev/null 2>&1; then
+  export MANPAGER="bat -l man -p"
+elif command -v batcat >/dev/null 2>&1; then
+  export MANPAGER="batcat -l man -p"
+fi
+
+# ============================================================
+# GPG
+# ============================================================
+export GPG_TTY=$(tty)
+
+# ============================================================
+# PATH Setup
+# ============================================================
+# Note: PATH setup for version managers and tools is in .zshrc
+# Keep only essential paths here
+
+# Personal binaries/scripts (highest priority)
+export PATH="$HOME/.local/bin:$PATH"
+
+# Homebrew (Apple Silicon)
+export PATH=/opt/homebrew/bin:$PATH
+
+# ============================================================
+# Node.js / Package Managers
+# ============================================================
+export VOLTA_HOME="$HOME/.volta"
+export PATH="$VOLTA_HOME/bin:$PATH"
+
+# pnpm
+export PNPM_HOME="$HOME/Library/pnpm"
+if [[ ! ":$PATH:" =~ ":$PNPM_HOME:" ]]; then
+  export PATH="$PNPM_HOME:$PATH"
+fi
+
+# ============================================================
+# Starship Prompt
+# ============================================================
+export STARSHIP_CONFIG="$ZDOTDIR/starship.toml"
+
+# ============================================================
+# Tool-Specific Variables
+# ============================================================
+
+# Android
+export ANDROID_HOME=$HOME/Library/Android/sdk
+
+# Java
+export JAVA_HOME=$(/usr/libexec/java_home -v 17)
+
+# ============================================================
+# Version Managers (Paths Only - lazy loaded in .zshrc)
+# ============================================================
+export PYENV_ROOT="$HOME/.pyenv"
+if [ -d "$PYENV_ROOT/bin" ]; then
+  export PATH="$PYENV_ROOT/bin:$PATH"
+fi
+
+export GOENV_ROOT="$HOME/.goenv"
+if [ -d "$GOENV_ROOT/bin" ]; then
+  export PATH="$GOENV_ROOT/bin:$PATH"
+fi
+
+if [ -d "/opt/homebrew/bin/rbenv" ]; then
+  export PATH="/opt/homebrew/bin/rbenv/bin:$PATH"
+fi
