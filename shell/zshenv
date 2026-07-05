@@ -118,7 +118,7 @@ fi
 # ============================================================
 # Starship Prompt
 # ============================================================
-export STARSHIP_CONFIG="$ZDOTDIR/starship.toml"
+export STARSHIP_CONFIG="$XDG_CONFIG_HOME/starship.toml"
 
 # ============================================================
 # Tool-Specific Variables

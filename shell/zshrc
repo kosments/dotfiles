@@ -107,9 +107,12 @@ alias go='_init_version_managers; go'
 # ============================================================
 # Cloud & DevTools
 # ============================================================
-if [ -d "/opt/homebrew/share/google-cloud-sdk" ]; then
-  source "/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc"
-  source "/opt/homebrew/share/google-cloud-sdk/path.zsh.inc"
+# [JP] brew --prefix でパスを動的解決（Apple Silicon / Intel Mac 両対応）
+if command -v brew >/dev/null; then
+  _GCLOUD_SDK="$(brew --prefix 2>/dev/null)/share/google-cloud-sdk"
+  [ -f "$_GCLOUD_SDK/completion.zsh.inc" ] && source "$_GCLOUD_SDK/completion.zsh.inc"
+  [ -f "$_GCLOUD_SDK/path.zsh.inc" ]       && source "$_GCLOUD_SDK/path.zsh.inc"
+  unset _GCLOUD_SDK
 fi
 
 # ============================================================
@@ -223,10 +226,12 @@ export FZF_DEFAULT_OPTS='--height=40% --layout=reverse --border=rounded --info=i
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 
-# fzf シェル統合: Ctrl+R/T と Alt+C を自動設定
-if command -v fzf >/dev/null; then
-  [ -f /opt/homebrew/opt/fzf/shell/completion.zsh ] && source /opt/homebrew/opt/fzf/shell/completion.zsh
-  [ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ] && source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+# [JP] fzf シェル統合: Ctrl+R/T と Alt+C を自動設定（brew --prefix で動的解決）
+if command -v fzf >/dev/null && command -v brew >/dev/null; then
+  _FZF_SHELL="$(brew --prefix 2>/dev/null)/opt/fzf/shell"
+  [ -f "$_FZF_SHELL/completion.zsh" ]   && source "$_FZF_SHELL/completion.zsh"
+  [ -f "$_FZF_SHELL/key-bindings.zsh" ] && source "$_FZF_SHELL/key-bindings.zsh"
+  unset _FZF_SHELL
 fi
 
 # ============================================================

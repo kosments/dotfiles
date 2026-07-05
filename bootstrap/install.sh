@@ -40,9 +40,11 @@ mkdir -p "${HOME}/.config"
 mkdir -p "${HOME}/.cursor/User"
 mkdir -p "${HOME}/.aws"
 mkdir -p "${HOME}/.config/mise"
+mkdir -p "${HOME}/.config/zsh"
 
 # Shell
 echo "[shell]"
+symlink "${DOTFILES}/shell/zshenv"             "${HOME}/.zshenv"
 symlink "${DOTFILES}/shell/zshrc"              "${HOME}/.zshrc"
 symlink "${DOTFILES}/.gitconfig"               "${HOME}/.gitconfig"
 
@@ -63,6 +65,10 @@ symlink "${DOTFILES}/config/wezterm"           "${HOME}/.config/wezterm"
 echo "[aws]"
 symlink "${DOTFILES}/config/aws/config"        "${HOME}/.aws/config"
 # Note: credentials は git 管理外 (~/.aws/credentials)
+
+# Starship prompt
+echo "[starship]"
+symlink "${DOTFILES}/config/starship.toml"     "${HOME}/.config/starship.toml"
 
 # mise
 echo "[mise]"

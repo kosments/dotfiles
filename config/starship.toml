@@ -1,0 +1,163 @@
+# ============================================================
+# Starship Prompt Configuration
+# ============================================================
+# Design: Nord color scheme, powerline-style segments
+#
+# Left:  [ directory ] [ git-branch git-status ] [ ⎈ k8s-context ]
+# Right: [  python ] [  node ] [  go ] [  duration] [ HH:MM ]
+#
+# Modules auto-hide when not relevant (no k8s → no k8s segment, etc.)
+# ============================================================
+
+add_newline = true
+
+# Left prompt: powerline dir → git → kubernetes → newline → status → character
+format = """
+$directory\
+[ ](fg:#88C0D0 bg:#1d2230)\
+$git_branch\
+$git_status\
+[ ](fg:#1d2230)\
+$kubernetes\
+\n$status$character"""
+
+# Right prompt: language versions → duration → time
+right_format = """
+$python\
+$nodejs\
+$golang\
+$terraform\
+$cmd_duration\
+$time"""
+
+# ============================================================
+# Directory
+# ============================================================
+[directory]
+style = "fg:#2E3440 bg:#88C0D0 bold"
+truncation_length = 4
+truncate_to_repo = true
+truncation_symbol = "…/"
+read_only = " 󰌾"
+read_only_style = "fg:#f7768e"
+format = "[ $path ]($style)[$read_only]($read_only_style)"
+
+[directory.substitutions]
+"Documents" = "󰈙 "
+"Downloads" = " "
+"Music" = " "
+"Pictures" = " "
+
+# ============================================================
+# Git
+# ============================================================
+[git_branch]
+symbol = " "
+style = "bg:#1d2230"
+format = '[[ $symbol$branch ](fg:#769ff0 bg:#1d2230)]($style)'
+
+[git_status]
+style = "bg:#1d2230"
+format = '[[($all_status$ahead_behind )](fg:#769ff0 bg:#1d2230)]($style)'
+conflicted = "⚡"
+ahead = "⬆${count}"
+behind = "⬇${count}"
+diverged = "⬆${ahead_count}⬇${behind_count}"
+modified = "✎"
+staged = "✔"
+untracked = "?"
+deleted = "✘"
+
+# ============================================================
+# Kubernetes (shows only when a context is active)
+# ============================================================
+[kubernetes]
+disabled = false
+format = '[⎈ $context( \($namespace\)) ]($style)'
+
+[[kubernetes.contexts]]
+context_pattern = "rancher-desktop"
+style = "bold green"
+context_alias = "local"
+
+[[kubernetes.contexts]]
+context_pattern = "kind-.*"
+style = "bold yellow"
+context_alias = "kind"
+
+[[kubernetes.contexts]]
+context_pattern = "gke_.*"
+style = "bold blue"
+context_alias = "gke"
+
+# ============================================================
+# Exit Status (shows only on non-zero exit)
+# ============================================================
+[status]
+disabled = false
+symbol = "✘ "
+style = "bold red"
+format = "[$symbol]($style)"
+
+# ============================================================
+# Character (prompt indicator — green on success, red on error)
+# ============================================================
+[character]
+success_symbol = "[❯](bold green)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[V](bold green)"
+
+# ============================================================
+# Language Versions (auto-detect per project directory)
+# ============================================================
+[python]
+symbol = " "
+style = "fg:#f7c948"
+format = "[$symbol$version ]($style)"
+detect_files = ["requirements.txt", "pyproject.toml", ".python-version", "setup.py", "Pipfile"]
+
+[nodejs]
+symbol = " "
+style = "fg:#68a063"
+format = "[$symbol$version ]($style)"
+detect_files = ["package.json", ".node-version", ".nvmrc"]
+
+[golang]
+symbol = " "
+style = "fg:#00ADD8"
+format = "[$symbol$version ]($style)"
+detect_files = ["go.mod", "go.sum"]
+
+[terraform]
+symbol = " "
+style = "fg:#7b42bc"
+format = "[$symbol$workspace ]($style)"
+
+# ============================================================
+# Command Duration (shows only when >= 2s)
+# ============================================================
+[cmd_duration]
+min_time = 2000
+style = "fg:#e0af68"
+format = "[ $duration]($style) "
+
+# ============================================================
+# Time
+# ============================================================
+[time]
+disabled = false
+time_format = "%H:%M"
+style = "fg:#a0a9cb"
+format = "[ $time]($style)"
+
+# ============================================================
+# Disabled
+# ============================================================
+[aws]
+disabled = true
+
+[gcloud]
+disabled = true
+
+[username]
+disabled = true
