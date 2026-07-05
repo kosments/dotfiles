@@ -137,14 +137,15 @@ return {
     -- Leader+z: 現在のペインをズーム（全画面表示/解除）
     { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
     -- Leader+f: 左30%にファイルエクスプローラーペインを開く（VS Code風レイアウト）
-    -- yazi をインストールすると args を { "yazi" } に変更するとより快適
+    -- zsh -l でログインシェルとして起動しHomebrewのPATHを引き継ぐ
+    -- yazi をインストールすると args を { "/bin/zsh", "-l", "-c", "yazi" } に変更するとより快適
     {
       key = "f",
       mods = "LEADER",
       action = act.SplitPane({
         direction = "Left",
         size = { Percent = 30 },
-        command = { args = { "nvim", "." } },
+        command = { args = { "/bin/zsh", "-l", "-c", "nvim ." } },
       }),
     },
 
