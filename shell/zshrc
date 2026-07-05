@@ -303,15 +303,19 @@ setopt NUMERIC_GLOB_SORT     # Numeric sort: file10 after file9, not after file1
 # [JP] .zshrc はメイン初期化とsource statements のみに
 # [EN] .zshrc contains only main init and source statements
 
-# [JP] エイリアス読み込み
-# [EN] Load aliases
-if [ -f "$ZDOTDIR/aliases.zsh" ]; then
+# [JP] エイリアス読み込み（dotfiles/shell から読み込み）
+# [EN] Load aliases from dotfiles
+if [ -f "$HOME/dotfiles/shell/aliases.zsh" ]; then
+  source "$HOME/dotfiles/shell/aliases.zsh"
+elif [ -f "$ZDOTDIR/aliases.zsh" ]; then
   source "$ZDOTDIR/aliases.zsh"
 fi
 
-# [JP] 関数読み込み（ユーザー定義関数、peco-functions など）
-# [EN] Load custom functions
-if [ -f "$ZDOTDIR/functions.zsh" ]; then
+# [JP] 関数読み込み（dotfiles/shell から読み込み）
+# [EN] Load custom functions from dotfiles
+if [ -f "$HOME/dotfiles/shell/functions.zsh" ]; then
+  source "$HOME/dotfiles/shell/functions.zsh"
+elif [ -f "$ZDOTDIR/functions.zsh" ]; then
   source "$ZDOTDIR/functions.zsh"
 fi
 

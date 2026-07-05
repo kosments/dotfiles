@@ -25,7 +25,7 @@ alias ls='eza --icons'
 alias ll='eza -lh --icons --git'
 alias la='eza -lah --icons --git'
 alias tree='eza --tree --icons'
-compdef eza=ls
+# compdef eza=ls  # [DEBUG] Commented out: causes zsh completion error
 
 # [JP] cat: bat に置き換え（シンタックスハイライト）
 # [EN] cat: Replace with bat (syntax highlighting)
@@ -351,7 +351,10 @@ alias lsports='lsof -i -P -n | grep LISTEN'
 # WezTerm / Dev Workflow
 # ============================================================
 # チートシートをglow表示 (wezterm help)
-alias wh='glow ~/.config/wezterm/cheatsheet.md'
+# [EN] Display WezTerm cheatsheet with glow
+wh() {
+  glow ~/.config/wezterm/cheatsheet.md
+}
 
 # ============================================================
 # Notes
