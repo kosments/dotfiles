@@ -16,6 +16,16 @@ config.use_ime = true
 config.window_background_opacity = 0.85
 -- 背景ブラーの強さ（透過と組み合わせてすりガラス風）
 config.macos_window_background_blur = 20
+-- スクロールバック行数（多めに確保してログ遡及を容易に）
+config.scrollback_lines = 10000
+-- フレームレート上限（スクロール・アニメーションを滑らかに）
+config.max_fps = 120
+-- タブを閉じたとき、直前にアクティブだったタブに戻る
+config.switch_to_last_active_tab_when_closing_tab = true
+-- タブタイトルの最大文字幅
+config.tab_max_width = 32
+-- 非アクティブペインを少し暗くしてフォーカス位置を明確に（VS Code風）
+config.inactive_pane_hsb = { brightness = 0.85 }
 
 ----------------------------------------------------
 -- タブバー
@@ -84,12 +94,26 @@ wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_wid
 end)
 
 ----------------------------------------------------
--- キーバインド
+-- スクロールバー（動的制御）
+----------------------------------------------------
+-- コンテンツがビューポートを超えた場合のみスクロールバーを表示
+-- オルタネートスクリーン（vim等）では常に非表示
+wezterm.on("update-status", function(window, pane)
+  local overrides = window:get_config_overrides() or {}
+  local dimensions = pane:get_dimensions()
+  overrides.enable_scroll_bar = dimensions.scrollback_rows > dimensions.viewport_rows
+    and not pane:is_alt_screen_active()
+  window:set_config_overrides(overrides)
+end)
+
+----------------------------------------------------
+-- キーバインド・マウスバインド
 ----------------------------------------------------
 -- デフォルトキーバインドを保持しつつカスタムキーバインドで拡張
 config.disable_default_key_bindings = false
 config.keys = require("keybinds").keys
 config.key_tables = require("keybinds").key_tables
+config.mouse_bindings = require("keybinds").mouse_bindings
 -- Leader キー: Ctrl+Q を離した後2秒以内に次のキーを押す（tmuxのプレフィックスと同じ操作）
 config.leader = { key = "q", mods = "CTRL", timeout_milliseconds = 2000 }
 

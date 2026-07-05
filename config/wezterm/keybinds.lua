@@ -94,7 +94,7 @@ return {
     { key = "0", mods = "SUPER", action = act.ResetFontSize },
 
     ----------------------------------------------------
-    -- コピー・ペースト
+    -- コピー・ペースト・スクロール
     ----------------------------------------------------
     -- Leader+[: コピーモードに入る（vi風の選択・コピー）
     { key = "[", mods = "LEADER", action = act.ActivateCopyMode },
@@ -102,6 +102,17 @@ return {
     { key = "c", mods = "SUPER", action = act.CopyTo("Clipboard") },
     -- Cmd+V: クリップボードからペースト
     { key = "v", mods = "SUPER", action = act.PasteFrom("Clipboard") },
+    -- Shift+↑/↓: 前後のシェルプロンプトまでスクロールジャンプ
+    -- shell integration（OSC 133）が必要: zshの場合はshell-integrationを設定する
+    { key = "UpArrow", mods = "SHIFT", action = act.ScrollToPrompt(-1) },
+    { key = "DownArrow", mods = "SHIFT", action = act.ScrollToPrompt(1) },
+
+    ----------------------------------------------------
+    -- カーソル・テキスト操作
+    ----------------------------------------------------
+    -- Meta+←/→: 単語単位でカーソル移動（ESC+b/f シーケンスをシェルに送信）
+    { key = "LeftArrow", mods = "META", action = act.SendString("\x1bb") },
+    { key = "RightArrow", mods = "META", action = act.SendString("\x1bf") },
 
     ----------------------------------------------------
     -- ペイン（画面分割）操作
@@ -125,6 +136,17 @@ return {
     { key = "[", mods = "CTRL|SHIFT", action = act.PaneSelect },
     -- Leader+z: 現在のペインをズーム（全画面表示/解除）
     { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
+    -- Leader+f: 左30%にファイルエクスプローラーペインを開く（VS Code風レイアウト）
+    -- yazi をインストールすると args を { "yazi" } に変更するとより快適
+    {
+      key = "f",
+      mods = "LEADER",
+      action = act.SplitPane({
+        direction = "Left",
+        size = { Percent = 30 },
+        command = { args = { "nvim", "." } },
+      }),
+    },
 
     ----------------------------------------------------
     -- その他・開発支援
@@ -155,6 +177,18 @@ return {
       key = "a",
       mods = "LEADER",
       action = act.ActivateKeyTable({ name = "activate_pane", timeout_milliseconds = 1000 }),
+    },
+  },
+
+  ----------------------------------------------------
+  -- マウスバインド
+  ----------------------------------------------------
+  mouse_bindings = {
+    -- トリプルクリック: コマンド出力全体（SemanticZone）を選択
+    -- shell integration が有効な場合に OSC 133 で区切られた出力ブロックを一括選択できる
+    {
+      event = { Down = { streak = 3, button = "Left" } },
+      action = act.SelectTextAtMouseCursor("SemanticZone"),
     },
   },
 
