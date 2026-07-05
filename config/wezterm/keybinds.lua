@@ -75,6 +75,9 @@ return {
     -- Pane作成 leader + r or d
     { key = "d", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
     { key = "r", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+    -- VSCode互換: Cmd+D で右に分割、Cmd+Shift+D で下に分割
+    { key = "d", mods = "SUPER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+    { key = "d", mods = "SUPER|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
     -- Paneを閉じる leader + x
     { key = "x", mods = "LEADER", action = act({ CloseCurrentPane = { confirm = true } }) },
     -- Pane移動 leader + hlkj
@@ -108,6 +111,21 @@ return {
     { key = "p", mods = "SHIFT|CTRL", action = act.ActivateCommandPalette },
     -- 設定再読み込み
     { key = "r", mods = "SHIFT|CTRL", action = act.ReloadConfiguration },
+    -- Dev session: 右40%ペインを開いてclaudeを起動するコマンドを入力させる
+    {
+      key = "e",
+      mods = "LEADER",
+      action = act.PromptInputLine({
+        description = "cc-dev [repo] [task_folder]  (Enter=実行, Esc=キャンセル):",
+        action = wezterm.action_callback(function(window, pane, line)
+          if line and line ~= "" then
+            pane:send_text("cc-dev " .. line .. "\n")
+          elseif line == "" then
+            pane:send_text("cc-dev\n")
+          end
+        end),
+      }),
+    },
     -- キーテーブル用
     { key = "s", mods = "LEADER", action = act.ActivateKeyTable({ name = "resize_pane", one_shot = false }) },
     {

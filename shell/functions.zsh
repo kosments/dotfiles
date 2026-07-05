@@ -385,5 +385,45 @@ function update-all() {
 }
 
 # ============================================================
+# Claude Code Dev Session (WezTerm)
+# ============================================================
+
+# cc-dev: WezTermを左右分割してclaudeセッションを開始
+# 使い方: cc-dev [repo_path] [task_folder]
+# 例: cc-dev ~/dev/02_repos/blog-for-kos ~/dev/01_task/20260705_task
+function cc-dev() {
+  local repo="${1:-$(pwd)}"
+  local task="${2:-}"
+
+  cd "$repo" || return 1
+
+  local claude_cmd="cd '$repo'"
+  if [[ -n "$task" ]]; then
+    claude_cmd+=" && claude --add-dir '$task'"
+  else
+    claude_cmd+=" && claude"
+  fi
+  # 右40%にclaudeペインを作成
+  wezterm cli split-pane --right --percent 40 -- zsh -c "$claude_cmd; exec zsh"
+
+  # 左ペインでnvimを起動
+  nvim .
+}
+
+# cc: カレント(または指定)リポジトリでclaudeを起動(ペイン分割なし)
+# 使い方: cc [repo_path] [task_folder]
+function cc() {
+  local repo="${1:-$(pwd)}"
+  local task="${2:-}"
+
+  cd "$repo" || return 1
+  if [[ -n "$task" ]]; then
+    claude --add-dir "$task"
+  else
+    claude
+  fi
+}
+
+# ============================================================
 # End of functions.zsh
 # ============================================================
