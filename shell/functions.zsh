@@ -53,8 +53,9 @@ function fzf-find-dir() {
 zle -N fzf-find-dir
 bindkey '^X' fzf-find-dir
 
-# [JP] Ctrl+G: ghq管理のgitリポジトリにfzfでジャンプ（git log プレビュー付き）
-# [EN] Ctrl+G: Jump to ghq-managed git repo with fzf (git log preview)
+# [JP] Ctrl+]: ghq管理のgitリポジトリにfzfでジャンプ（git log プレビュー付き）
+# [EN] Ctrl+]: Jump to ghq-managed git repo with fzf (git log preview)
+# Ctrl+G はChrome拡張が占有するため Ctrl+] を使用
 function fzf-ghq() {
   local root
   root=$(ghq root)
@@ -69,7 +70,7 @@ function fzf-ghq() {
   fi
 }
 zle -N fzf-ghq
-bindkey '^G' fzf-ghq
+bindkey '^]' fzf-ghq
 
 # [JP] ff: カレントディレクトリ以下のファイルをfzfで選択してnvimで開く
 # [EN] ff: Find file in current dir/repo with fzf, open in nvim
