@@ -14,54 +14,93 @@
 # Note: Load via: source "$ZDOTDIR/functions.zsh" in .zshrc
 
 # ============================================================
-# Navigation Functions (Peco-based)
+# Navigation Functions (fzf-based)
 # ============================================================
+# [JP] pecoからfzfに移行。プレビュー付きで高速・インタラクティブなナビゲーション
+# [EN] Migrated from peco to fzf with preview support
+#
+# Ctrl+R は zshrc でfzf組み込みに設定済み（履歴検索）
 
-# [JP] Ctrl+R: 重複削除したhistoryをfuzzy検索
-# [EN] Ctrl+R: Fuzzy search history with deduplication
-function peco-history-selection() {
-  BUFFER=`history -n 1 | tac | awk '!a[$0]++' | peco`
-  CURSOR=$#BUFFER
-  zle reset-prompt
-}
-zle -N peco-history-selection
-bindkey '^R' peco-history-selection
-
-# [JP] Ctrl+E: 最近訪問したディレクトリにジャンプ
-# [EN] Ctrl+E: Jump to recently visited directory
-function peco-cdr () {
-  local selected_dir="$(cdr -l | sed 's/^[0-9]* *//' | peco)"
-  if [ -n "$selected_dir" ]; then
-    BUFFER="cd ${selected_dir}"
+# [JP] Ctrl+E: 最近訪問したディレクトリにfzfでジャンプ（ls プレビュー付き）
+# [EN] Ctrl+E: Jump to recently visited directory with fzf
+function fzf-cdr() {
+  local dir
+  dir=$(cdr -l | sed 's/^[0-9]* *//' | \
+    fzf --prompt="  recent> " \
+      --preview='ls -la {}' \
+      --preview-window=right:40%)
+  if [ -n "$dir" ]; then
+    BUFFER="cd ${dir}"
     zle accept-line
   fi
 }
-zle -N peco-cdr
-bindkey '^E' peco-cdr
+zle -N fzf-cdr
+bindkey '^E' fzf-cdr
 
-# [JP] Ctrl+X: カレントディレクトリ以下のディレクトリを検索してcd
-# [EN] Ctrl+X: Find and cd into subdirectory
-function find_cd() {
-  local selected_dir=$(find . -type d | peco)
-  if [ -n "$selected_dir" ]; then
-    BUFFER="cd ${selected_dir}"
+# [JP] Ctrl+X: カレントディレクトリ以下をfzfで検索してcd（ls プレビュー付き）
+# [EN] Ctrl+X: Find and cd into subdirectory with fzf
+function fzf-find-dir() {
+  local dir
+  dir=$(fd --type d --hidden --follow --exclude .git 2>/dev/null | \
+    fzf --prompt="  dir> " \
+      --preview='ls -la {}' \
+      --preview-window=right:40%)
+  if [ -n "$dir" ]; then
+    BUFFER="cd ${dir}"
     zle accept-line
   fi
 }
-zle -N find_cd
-bindkey '^X' find_cd
+zle -N fzf-find-dir
+bindkey '^X' fzf-find-dir
 
-# [JP] Ctrl+G: ghqで管理されているGitリポジトリにジャンプ
-# [EN] Ctrl+G: Jump to ghq-managed Git repository
-function peco-src () {
-  local selected_dir=$(ghq list -p | peco)
-  if [ -n "$selected_dir" ]; then
-    BUFFER="cd ${selected_dir}"
-    zle accept-line
+# [JP] Ctrl+G: ghq管理のgitリポジトリにfzfでジャンプ（git log プレビュー付き）
+# [EN] Ctrl+G: Jump to ghq-managed git repo with fzf (git log preview)
+function fzf-ghq() {
+  local root
+  root=$(ghq root)
+  local repo
+  repo=$(ghq list | \
+    fzf --prompt="  repo> " \
+      --preview="git -C ${root}/{} log --oneline --color=always -15 2>/dev/null || ls -la ${root}/{}" \
+      --preview-window=right:50%)
+  if [ -n "$repo" ]; then
+    cd "${root}/${repo}"
+    zle reset-prompt
   fi
 }
-zle -N peco-src
-bindkey '^G' peco-src
+zle -N fzf-ghq
+bindkey '^G' fzf-ghq
+
+# [JP] ff: カレントディレクトリ以下のファイルをfzfで選択してnvimで開く
+# [EN] ff: Find file in current dir/repo with fzf, open in nvim
+function ff() {
+  local file
+  file=$(fd --type f --hidden --follow --exclude .git 2>/dev/null | \
+    fzf --prompt="  file> " \
+      --preview='cat {}' \
+      --preview-window=right:60%)
+  [ -n "$file" ] && nvim "$file"
+}
+
+# [JP] fr: ghqリポジトリ選択 → ファイル選択 → nvimで開く（2ステップワークフロー）
+# [EN] fr: Select ghq repo → select file with fzf → open in nvim
+function fr() {
+  local root
+  root=$(ghq root)
+  local repo
+  repo=$(ghq list | \
+    fzf --prompt="  repo> " \
+      --preview="git -C ${root}/{} log --oneline --color=always -10 2>/dev/null" \
+      --preview-window=right:50%)
+  [ -z "$repo" ] && return
+  local file
+  file=$(fd --type f --hidden --follow --exclude .git . "${root}/${repo}" 2>/dev/null | \
+    sed "s|${root}/${repo}/||" | \
+    fzf --prompt="  file> " \
+      --preview="cat ${root}/${repo}/{}" \
+      --preview-window=right:60%)
+  [ -n "$file" ] && nvim "${root}/${repo}/${file}"
+}
 
 # ============================================================
 # Kubernetes Helpers

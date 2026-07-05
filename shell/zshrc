@@ -203,25 +203,36 @@ zinit light zsh-users/zsh-autosuggestions
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=244"  # Gray text for suggestions (subtle)
 
 # ============================================================
-# Keybindings
+# fzf Integration
 # ============================================================
-# Purpose: Custom key bindings for faster navigation and command recall
+# [JP] fzf: 高速インタラクティブファジーファインダー（pecoから移行）
+# [EN] fzf: Fast interactive fuzzy finder (migrated from peco)
+#
+# Ctrl+R : 履歴をfzfで検索（fzf組み込み）
+# Ctrl+T : カレントディレクトリのファイルを選択してCLIに貼り付け（fzf組み込み）
+# Alt+C  : サブディレクトリにfzfでジャンプ（fzf組み込み）
+# Ctrl+G : ghqリポジトリにfzfでジャンプ（functions.zsh で定義）
+# Ctrl+E : 最近訪問したディレクトリにfzfでジャンプ（functions.zsh で定義）
+# Ctrl+X : サブディレクトリにfzfでジャンプ（functions.zsh で定義）
+# ff     : カレントのファイルをfzfで選択 → nvimで開く（functions.zsh で定義）
+# fr     : ghqリポジトリ選択 → ファイル選択 → nvimで開く（functions.zsh で定義）
 
-# Ctrl+R: Fuzzy history search via peco (better than Ctrl+R default)
-# - Shows unique commands only (deduped)
-# - Navigable with arrow keys, searchable by typing
-function peco-history-selection() {
-  BUFFER=`history -n 1 | tac | awk '!a[$0]++' | peco`
-  CURSOR=$#BUFFER
-  zle reset-prompt
-}
-zle -N peco-history-selection
-bindkey '^R' peco-history-selection
+# fd を使ってfzfのデフォルトコマンドを高速化（.gitignore 尊重, 隠しファイル含む）
+export FZF_DEFAULT_COMMAND='fd --type f --hidden --follow --exclude .git'
+export FZF_DEFAULT_OPTS='--height=40% --layout=reverse --border=rounded --info=inline'
+export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+export FZF_ALT_C_COMMAND='fd --type d --hidden --follow --exclude .git'
 
-# Ctrl+E: Fuzzy jump to recently visited directory
-# - Tracks directory navigation history (frequency + recency based)
-# - Allows quick return to commonly-used directories
-# - Cache stored in ~/.cache/chpwd-recent-dirs
+# fzf シェル統合: Ctrl+R/T と Alt+C を自動設定
+if command -v fzf >/dev/null; then
+  [ -f /opt/homebrew/opt/fzf/shell/completion.zsh ] && source /opt/homebrew/opt/fzf/shell/completion.zsh
+  [ -f /opt/homebrew/opt/fzf/shell/key-bindings.zsh ] && source /opt/homebrew/opt/fzf/shell/key-bindings.zsh
+fi
+
+# ============================================================
+# cdr Setup（最近訪問ディレクトリの追跡）
+# ============================================================
+# Ctrl+E の fzf-cdr 関数（functions.zsh）が cdr コマンドを使用するため先に初期化
 if [[ -n $(echo ${^fpath}/chpwd_recent_dirs(N)) && -n $(echo ${^fpath}/cdr(N)) ]]; then
   autoload -Uz chpwd_recent_dirs cdr add-zsh-hook
   add-zsh-hook chpwd chpwd_recent_dirs
@@ -230,42 +241,6 @@ if [[ -n $(echo ${^fpath}/chpwd_recent_dirs(N)) && -n $(echo ${^fpath}/cdr(N)) ]
   zstyle ':chpwd:*' recent-dirs-max 1000
   zstyle ':chpwd:*' recent-dirs-file "$HOME/.cache/chpwd-recent-dirs"
 fi
-function peco-cdr () {
-  local selected_dir="$(cdr -l | sed 's/^[0-9]* *//' | peco)"
-  if [ -n "$selected_dir" ]; then
-    BUFFER="cd ${selected_dir}"
-    zle accept-line
-  fi
-}
-zle -N peco-cdr
-bindkey '^E' peco-cdr
-
-# Ctrl+X: Fuzzy find and cd into subdirectory
-# - Searches all directories under current path
-# - Useful for navigating deep directory structures
-function find_cd() {
-  local selected_dir=$(find . -type d | peco)
-  if [ -n "$selected_dir" ]; then
-    BUFFER="cd ${selected_dir}"
-    zle accept-line
-  fi
-}
-zle -N find_cd
-bindkey '^X' find_cd
-
-# Ctrl+G: Fuzzy jump to git repository
-# - Uses `ghq` (GitHub Quality) to manage cloned repos
-# - Searches in default ghq location (usually ~/ghq)
-# - Quick switch between projects
-function peco-src () {
-  local selected_dir=$(ghq list -p | peco)
-  if [ -n "$selected_dir" ]; then
-    BUFFER="cd ${selected_dir}"
-    zle accept-line
-  fi
-}
-zle -N peco-src
-bindkey '^G' peco-src
 
 # ============================================================
 # History Options (Tier 1 Optimization)
