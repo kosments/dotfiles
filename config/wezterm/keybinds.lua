@@ -90,11 +90,11 @@ return {
     -- 選択中のPaneのみ表示
     { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
 
-    -- フォントサイズ切替
-    { key = "+", mods = "CTRL", action = act.IncreaseFontSize },
-    { key = "-", mods = "CTRL", action = act.DecreaseFontSize },
+    -- フォントサイズ切替（他のターミナルと同じ: Cmd++/Cmd+-/Cmd+0）
+    { key = "+", mods = "SUPER", action = act.IncreaseFontSize },
+    { key = "-", mods = "SUPER", action = act.DecreaseFontSize },
     -- フォントサイズのリセット
-    { key = "0", mods = "CTRL", action = act.ResetFontSize },
+    { key = "0", mods = "SUPER", action = act.ResetFontSize },
 
     -- タブ切替 Cmd + 数字
     { key = "1", mods = "SUPER", action = act.ActivateTab(0) },
