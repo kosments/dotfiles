@@ -1,7 +1,11 @@
+-- WezTerm キーバインド設定
+-- Leader キー（Ctrl+Q）を起点としたペイン・タブ・ワークスペース操作を定義
+-- 操作方法: Ctrl+Q を押して離す → 2秒以内に次のキーを押す（tmuxと同じ）
 local wezterm = require("wezterm")
 local act = wezterm.action
 
--- Show which key table is active in the status area
+-- アクティブなキーテーブル名を右ステータスに表示
+-- resize_pane や activate_pane モード中に右上に "TABLE: ..." と表示される
 wezterm.on("update-right-status", function(window, pane)
   local name = window:active_key_table()
   if name then
@@ -12,14 +16,17 @@ end)
 
 return {
   keys = {
+    ----------------------------------------------------
+    -- Workspace（作業空間）管理
+    ----------------------------------------------------
     {
-      -- workspaceの切り替え
+      -- Leader+w: ワークスペース一覧を表示して切り替え
       key = "w",
       mods = "LEADER",
       action = act.ShowLauncherArgs({ flags = "WORKSPACES", title = "Select workspace" }),
     },
     {
-      --workspaceの名前変更
+      -- Leader+$: 現在のワークスペースをリネーム
       key = "$",
       mods = "LEADER",
       action = act.PromptInputLine({
@@ -32,6 +39,7 @@ return {
       }),
     },
     {
+      -- Leader+Shift+W: 新しいワークスペースを作成して移動
       key = "W",
       mods = "LEADER|SHIFT",
       action = act.PromptInputLine({
@@ -48,55 +56,23 @@ return {
         end),
       }),
     },
-    -- コマンドパレット表示
+
+    ----------------------------------------------------
+    -- タブ操作
+    ----------------------------------------------------
+    -- Cmd+P: コマンドパレット表示
     { key = "p", mods = "SUPER", action = act.ActivateCommandPalette },
-    -- Tab移動
+    -- Ctrl+Tab / Ctrl+Shift+Tab: 次/前のタブへ移動
     { key = "Tab", mods = "CTRL", action = act.ActivateTabRelative(1) },
     { key = "Tab", mods = "SHIFT|CTRL", action = act.ActivateTabRelative(-1) },
-    -- Tab入れ替え
+    -- Leader+{ / Leader+}: タブを左/右へ移動
     { key = "{", mods = "LEADER", action = act({ MoveTabRelative = -1 }) },
-    -- Tab新規作成
-    { key = "t", mods = "SUPER", action = act({ SpawnTab = "CurrentPaneDomain" }) },
-    -- Tabを閉じる
-    { key = "w", mods = "SUPER", action = act({ CloseCurrentTab = { confirm = true } }) },
     { key = "}", mods = "LEADER", action = act({ MoveTabRelative = 1 }) },
-
-    -- 画面フルスクリーン切り替え
-    { key = "Enter", mods = "ALT", action = act.ToggleFullScreen },
-
-    -- コピーモード
-    -- { key = 'X', mods = 'LEADER', action = act.ActivateKeyTable{ name = 'copy_mode', one_shot =false }, },
-    { key = "[", mods = "LEADER", action = act.ActivateCopyMode },
-    -- コピー
-    { key = "c", mods = "SUPER", action = act.CopyTo("Clipboard") },
-    -- 貼り付け
-    { key = "v", mods = "SUPER", action = act.PasteFrom("Clipboard") },
-
-    -- Pane作成 leader + r or d
-    { key = "d", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
-    { key = "r", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
-    -- VSCode互換: Cmd+D で右に分割、Cmd+Shift+D で下に分割
-    { key = "d", mods = "SUPER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
-    { key = "d", mods = "SUPER|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
-    -- Paneを閉じる leader + x
-    { key = "x", mods = "LEADER", action = act({ CloseCurrentPane = { confirm = true } }) },
-    -- Pane移動 leader + hlkj
-    { key = "h", mods = "LEADER", action = act.ActivatePaneDirection("Left") },
-    { key = "l", mods = "LEADER", action = act.ActivatePaneDirection("Right") },
-    { key = "k", mods = "LEADER", action = act.ActivatePaneDirection("Up") },
-    { key = "j", mods = "LEADER", action = act.ActivatePaneDirection("Down") },
-    -- Pane選択
-    { key = "[", mods = "CTRL|SHIFT", action = act.PaneSelect },
-    -- 選択中のPaneのみ表示
-    { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
-
-    -- フォントサイズ切替（他のターミナルと同じ: Cmd++/Cmd+-/Cmd+0）
-    { key = "+", mods = "SUPER", action = act.IncreaseFontSize },
-    { key = "-", mods = "SUPER", action = act.DecreaseFontSize },
-    -- フォントサイズのリセット
-    { key = "0", mods = "SUPER", action = act.ResetFontSize },
-
-    -- タブ切替 Cmd + 数字
+    -- Cmd+T: 新規タブを開く
+    { key = "t", mods = "SUPER", action = act({ SpawnTab = "CurrentPaneDomain" }) },
+    -- Cmd+W: 現在のタブを閉じる（確認あり）
+    { key = "w", mods = "SUPER", action = act({ CloseCurrentTab = { confirm = true } }) },
+    -- Cmd+1〜9: タブ番号で直接切り替え（9は最後のタブ）
     { key = "1", mods = "SUPER", action = act.ActivateTab(0) },
     { key = "2", mods = "SUPER", action = act.ActivateTab(1) },
     { key = "3", mods = "SUPER", action = act.ActivateTab(2) },
@@ -107,11 +83,57 @@ return {
     { key = "8", mods = "SUPER", action = act.ActivateTab(7) },
     { key = "9", mods = "SUPER", action = act.ActivateTab(-1) },
 
-    -- コマンドパレット
+    ----------------------------------------------------
+    -- 画面・ウィンドウ
+    ----------------------------------------------------
+    -- Alt+Enter: フルスクリーン切り替え
+    { key = "Enter", mods = "ALT", action = act.ToggleFullScreen },
+    -- フォントサイズ変更（macOS 標準の Cmd++/Cmd+-/Cmd+0）
+    { key = "+", mods = "SUPER", action = act.IncreaseFontSize },
+    { key = "-", mods = "SUPER", action = act.DecreaseFontSize },
+    { key = "0", mods = "SUPER", action = act.ResetFontSize },
+
+    ----------------------------------------------------
+    -- コピー・ペースト
+    ----------------------------------------------------
+    -- Leader+[: コピーモードに入る（vi風の選択・コピー）
+    { key = "[", mods = "LEADER", action = act.ActivateCopyMode },
+    -- Cmd+C: クリップボードにコピー
+    { key = "c", mods = "SUPER", action = act.CopyTo("Clipboard") },
+    -- Cmd+V: クリップボードからペースト
+    { key = "v", mods = "SUPER", action = act.PasteFrom("Clipboard") },
+
+    ----------------------------------------------------
+    -- ペイン（画面分割）操作
+    ----------------------------------------------------
+    -- Leader+d: 縦に分割（上下）
+    { key = "d", mods = "LEADER", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+    -- Leader+r: 横に分割（左右）
+    { key = "r", mods = "LEADER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+    -- Cmd+D: 右に分割（VS Code互換）
+    { key = "d", mods = "SUPER", action = act.SplitHorizontal({ domain = "CurrentPaneDomain" }) },
+    -- Cmd+Shift+D: 下に分割（VS Code互換）
+    { key = "d", mods = "SUPER|SHIFT", action = act.SplitVertical({ domain = "CurrentPaneDomain" }) },
+    -- Leader+x: 現在のペインを閉じる（確認あり）
+    { key = "x", mods = "LEADER", action = act({ CloseCurrentPane = { confirm = true } }) },
+    -- Leader+hjkl: vi風ペイン移動
+    { key = "h", mods = "LEADER", action = act.ActivatePaneDirection("Left") },
+    { key = "l", mods = "LEADER", action = act.ActivatePaneDirection("Right") },
+    { key = "k", mods = "LEADER", action = act.ActivatePaneDirection("Up") },
+    { key = "j", mods = "LEADER", action = act.ActivatePaneDirection("Down") },
+    -- Ctrl+Shift+[: ペイン選択モード（番号で選択）
+    { key = "[", mods = "CTRL|SHIFT", action = act.PaneSelect },
+    -- Leader+z: 現在のペインをズーム（全画面表示/解除）
+    { key = "z", mods = "LEADER", action = act.TogglePaneZoomState },
+
+    ----------------------------------------------------
+    -- その他・開発支援
+    ----------------------------------------------------
+    -- Ctrl+Shift+P: コマンドパレット
     { key = "p", mods = "SHIFT|CTRL", action = act.ActivateCommandPalette },
-    -- 設定再読み込み
+    -- Ctrl+Shift+R: 設定ファイルを手動で再読み込み
     { key = "r", mods = "SHIFT|CTRL", action = act.ReloadConfiguration },
-    -- Dev session: 右40%ペインを開いてclaudeを起動するコマンドを入力させる
+    -- Leader+e: cc-dev セッション起動（リポジトリとタスクフォルダを入力）
     {
       key = "e",
       mods = "LEADER",
@@ -126,84 +148,89 @@ return {
         end),
       }),
     },
-    -- キーテーブル用
+    -- Leader+s: ペインサイズ調整モード（hjklで調整、Enterで終了）
     { key = "s", mods = "LEADER", action = act.ActivateKeyTable({ name = "resize_pane", one_shot = false }) },
+    -- Leader+a: ペイン移動モード（1000ms タイムアウト）
     {
       key = "a",
       mods = "LEADER",
       action = act.ActivateKeyTable({ name = "activate_pane", timeout_milliseconds = 1000 }),
     },
   },
-  -- キーテーブル
-  -- https://wezfurlong.org/wezterm/config/key-tables.html
+
+  ----------------------------------------------------
+  -- キーテーブル（モード別キーバインド）
+  -- 参考: https://wezfurlong.org/wezterm/config/key-tables.html
+  ----------------------------------------------------
   key_tables = {
-    -- Paneサイズ調整 leader + s
+    -- ペインサイズ調整モード（Leader+s で起動）
+    -- hjkl で1列ずつサイズ変更、Enter で終了
     resize_pane = {
       { key = "h", action = act.AdjustPaneSize({ "Left", 1 }) },
       { key = "l", action = act.AdjustPaneSize({ "Right", 1 }) },
       { key = "k", action = act.AdjustPaneSize({ "Up", 1 }) },
       { key = "j", action = act.AdjustPaneSize({ "Down", 1 }) },
-
-      -- Cancel the mode by pressing escape
       { key = "Enter", action = "PopKeyTable" },
     },
+
+    -- ペイン移動モード（Leader+a で起動、1000ms タイムアウト）
     activate_pane = {
       { key = "h", action = act.ActivatePaneDirection("Left") },
       { key = "l", action = act.ActivatePaneDirection("Right") },
       { key = "k", action = act.ActivatePaneDirection("Up") },
       { key = "j", action = act.ActivatePaneDirection("Down") },
     },
-    -- copyモード leader + [
+
+    -- コピーモード（Leader+[ で起動）
+    -- vi風のカーソル移動でテキストを選択してコピー
     copy_mode = {
-      -- 移動
+      -- カーソル移動（hjkl）
       { key = "h", mods = "NONE", action = act.CopyMode("MoveLeft") },
       { key = "j", mods = "NONE", action = act.CopyMode("MoveDown") },
       { key = "k", mods = "NONE", action = act.CopyMode("MoveUp") },
       { key = "l", mods = "NONE", action = act.CopyMode("MoveRight") },
-      -- 最初と最後に移動
+      -- 行頭・行末へ移動
       { key = "^", mods = "NONE", action = act.CopyMode("MoveToStartOfLineContent") },
       { key = "$", mods = "NONE", action = act.CopyMode("MoveToEndOfLineContent") },
-      -- 左端に移動
       { key = "0", mods = "NONE", action = act.CopyMode("MoveToStartOfLine") },
+      -- 選択範囲の反対端へ移動
       { key = "o", mods = "NONE", action = act.CopyMode("MoveToSelectionOtherEnd") },
       { key = "O", mods = "NONE", action = act.CopyMode("MoveToSelectionOtherEndHoriz") },
-      --
       { key = ";", mods = "NONE", action = act.CopyMode("JumpAgain") },
-      -- 単語ごと移動
+      -- 単語単位で移動
       { key = "w", mods = "NONE", action = act.CopyMode("MoveForwardWord") },
       { key = "b", mods = "NONE", action = act.CopyMode("MoveBackwardWord") },
       { key = "e", mods = "NONE", action = act.CopyMode("MoveForwardWordEnd") },
-      -- ジャンプ機能 t f
+      -- 文字ジャンプ（t/f: 前方、T/F: 後方）
       { key = "t", mods = "NONE", action = act.CopyMode({ JumpForward = { prev_char = true } }) },
       { key = "f", mods = "NONE", action = act.CopyMode({ JumpForward = { prev_char = false } }) },
       { key = "T", mods = "NONE", action = act.CopyMode({ JumpBackward = { prev_char = true } }) },
       { key = "F", mods = "NONE", action = act.CopyMode({ JumpBackward = { prev_char = false } }) },
-      -- 一番下へ
+      -- バッファの先頭・末尾へ移動
       { key = "G", mods = "NONE", action = act.CopyMode("MoveToScrollbackBottom") },
-      -- 一番上へ
       { key = "g", mods = "NONE", action = act.CopyMode("MoveToScrollbackTop") },
-      -- viweport
+      -- ビューポート内の移動（H: 上端、M: 中央、L: 下端）
       { key = "H", mods = "NONE", action = act.CopyMode("MoveToViewportTop") },
       { key = "L", mods = "NONE", action = act.CopyMode("MoveToViewportBottom") },
       { key = "M", mods = "NONE", action = act.CopyMode("MoveToViewportMiddle") },
-      -- スクロール
+      -- ページスクロール
       { key = "b", mods = "CTRL", action = act.CopyMode("PageUp") },
       { key = "f", mods = "CTRL", action = act.CopyMode("PageDown") },
       { key = "d", mods = "CTRL", action = act.CopyMode({ MoveByPage = 0.5 }) },
       { key = "u", mods = "CTRL", action = act.CopyMode({ MoveByPage = -0.5 }) },
-      -- 範囲選択モード
+      -- 選択モード切り替え（v: 文字、Ctrl+v: ブロック、V: 行）
       { key = "v", mods = "NONE", action = act.CopyMode({ SetSelectionMode = "Cell" }) },
       { key = "v", mods = "CTRL", action = act.CopyMode({ SetSelectionMode = "Block" }) },
       { key = "V", mods = "NONE", action = act.CopyMode({ SetSelectionMode = "Line" }) },
-      -- コピー
+      -- y: 選択範囲をクリップボードにコピー
       { key = "y", mods = "NONE", action = act.CopyTo("Clipboard") },
-
-      -- コピーモードを終了
+      -- Enter: コピーしてコピーモードを終了
       {
         key = "Enter",
         mods = "NONE",
         action = act.Multiple({ { CopyTo = "ClipboardAndPrimarySelection" }, { CopyMode = "Close" } }),
       },
+      -- Escape / Ctrl+C / q: コピーモードを終了
       { key = "Escape", mods = "NONE", action = act.CopyMode("Close") },
       { key = "c", mods = "CTRL", action = act.CopyMode("Close") },
       { key = "q", mods = "NONE", action = act.CopyMode("Close") },
