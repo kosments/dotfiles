@@ -1,168 +1,167 @@
-# 🚀 Dotfiles - Portable Terminal & Development Environment
+# Dotfiles — Portable Terminal & Development Environment
 
-**[日本語](#日本語) | [English](#english)**
+複数マシンで同じターミナル環境を再現するための dotfiles。
+
+**Tech stack**: WezTerm · Zsh · Starship · Neovim · tmux · fzf · ghq
 
 ---
 
-## 日本語
-
-### 📌 概要
-
-複数のマシン・環境で同じターミナル設定を使用できるポータブル dotfiles です。
-
-- ローカル、SSH、Docker、VS Code DevContainer など、どの環境でも同じ設定で作業可能
-- 秘密情報は .zshrc.local で独立管理（git 記録なし）
-- 100+ エイリアス + 20+ ヘルパー関数
-- 技術スタック対応: gcloud, kubectl, terraform, aws, git, glab, newrelic 等
-- 起動時間最適化: 3.0s → 0.3-0.6s (90%削減)
-
-### 🎯 対応環境
-
-| 環境 | 対応 | 詳細 |
-|------|------|------|
-| **macOS Terminal** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
-| **Linux** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
-| **VS Code DevContainer** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
-| **SSH Remote** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
-| **Docker / Rancher** | ✅ | [ENVIRONMENTS.md](docs/ENVIRONMENTS.md) |
-
-### 🚀 クイックスタート
+## New Machine Setup
 
 ```bash
-# 1. クローン
-git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
+# 1. Clone (~/dotfiles に固定)
+git clone https://github.com/kosments/dotfiles.git ~/dotfiles
 
-# 2. シンボリックリンク作成
-mkdir -p ~/.config/zsh
-ln -sf ~/.dotfiles/shell/zshrc ~/.zshrc
-ln -sf ~/.dotfiles/shell/zshenv ~/.zshenv
-
-# 3. ローカル設定作成（秘密情報）
-cp ~/.dotfiles/shell/.zshrc.local.example ~/.zshrc.local
-# ~/.zshrc.local を編集してAPI キーなどを設定
-
-# 4. 環境別セットアップ
-# 詳細は docs/ENVIRONMENTS.md を参照
+# 2. セットアップ実行（Homebrew → symlinks → packages → 言語ランタイム）
+bash ~/dotfiles/setup.sh
 ```
 
-### 📁 ファイル構成
+`setup.sh` が以下を自動でやってくれる：
 
-```
-shell/
-├── .zshenv                        環境変数（XDG Base Directory 標準）
-├── .zshrc                         メイン初期化・プラグイン
-├── aliases.zsh                    100+ エイリアス定義
-├── functions.zsh                  20+ ヘルパー関数
-├── .zshrc.local.example           ローカル設定テンプレート（git除外）
-└── .tmux.conf                     tmux 設定（マルチ環境対応）
+| ステップ | 内容 |
+|---------|------|
+| Homebrew のインストール（未インストール時） | `/bin/bash -c "$(curl ...)` |
+| シンボリックリンク作成 | `bootstrap/install.sh` |
+| Homebrew パッケージ一括インストール | `bootstrap/brew.sh`（Brewfile 使用） |
+| 言語ランタイム | `bootstrap/languages.sh`（Volta/goenv/mise） |
+| `~/.zshrc.local` 雛形作成 | `.zshrc.local.example` からコピー |
 
-docs/
-├── zsh-startup-optimization.md    起動時間最適化の詳細
-└── ENVIRONMENTS.md                環境別セットアップガイド
-```
-
-### 🔧 主要機能
-
-**100+ エイリアス**  
-gcloud, kubectl, terraform, aws, git, glab, newrelic, docker 等
-
-**20+ ヘルパー関数**  
-k-pod-shell, gcp-project, aws-profile, tf-plan-review 等
-
-**🔒 セキュリティ**  
-秘密情報は .zshrc.local で管理（git 記録なし）
-
-**⚡ パフォーマンス**  
-起動時間 90% 削減
-
-### 📚 詳細ドキュメント
-
-- [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) - macOS/Linux/Docker/SSH/DevContainer 環境別ガイド
-- [docs/zsh-startup-optimization.md](docs/zsh-startup-optimization.md) - 起動時間最適化の詳細
-- [shell/.zshrc.local.example](shell/.zshrc.local.example) - ローカル設定テンプレート
-
-### 🔄 カスタマイズ
-
-`.zshrc.local` にマシン固有の設定を追加：
+### setup.sh 完了後にやること
 
 ```bash
-# ~/.zshrc.local
-export AWS_PROFILE="my-profile"
-export GOOGLE_PROJECT_ID="my-project"
+# 1. ~/.zshrc.local に認証情報・環境固有設定を記入
+vi ~/.zshrc.local
 
-alias myproject='cd ~/dev/my-project && ls'
+# 2. Neovim 設定をクローン（使う場合）
+git clone https://github.com/kosments/nvim-config.git ~/.config/nvim
 
-my-deploy() {
-  echo "Deploying to $1..."
-  # your deployment logic
-}
-```
-
-### 🐛 トラブルシューティング
-
-**起動が遅い場合**
-```bash
-time zsh -i -c exit
-```
-
-**エイリアスが効きません**
-```bash
-# 確認1: symlink 確認
-readlink ~/.zshrc
-
-# 確認2: シェル再起動
+# 3. 新しいシェルを起動
 exec zsh
 ```
 
-### 📝 ファイル説明
-
-| ファイル | 役割 | 共有 |
-|---------|------|------|
-| .zshenv | 環境変数（全シェル） | ✅ |
-| .zshrc | 初期化・プラグイン | ✅ |
-| aliases.zsh | エイリアス | ✅ |
-| functions.zsh | ヘルパー関数 | ✅ |
-| .zshrc.local | 秘密情報・ローカル設定 | ❌ (gitignore) |
-| .tmux.conf | tmux 設定 | ✅ |
-
----
-
-## English
-
-### 📌 Overview
-
-A portable dotfiles repository for consistent terminal configuration across multiple machines and environments.
-
-- Work locally, over SSH, in Docker, VS Code DevContainer with the same setup
-- Secrets managed in .zshrc.local (not tracked by git)
-- 100+ aliases + 20+ helper functions
-- Tech stack support: gcloud, kubectl, terraform, aws, git, glab, newrelic, etc.
-- Startup time optimized: 3.0s → 0.3-0.6s
-
-### 🎯 Supported Environments
-
-macOS, Linux, Docker, SSH, VS Code DevContainer, and more.
-
-### 🚀 Quick Start
+### 部分実行（パッケージを後でインストールしたい場合など）
 
 ```bash
-git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
-mkdir -p ~/.config/zsh
-ln -sf ~/.dotfiles/shell/zshrc ~/.zshrc
-ln -sf ~/.dotfiles/shell/zshenv ~/.zshenv
-cp ~/.dotfiles/shell/.zshrc.local.example ~/.zshrc.local
+bash ~/dotfiles/setup.sh --skip-brew       # パッケージインストールをスキップ
+bash ~/dotfiles/setup.sh --skip-languages  # 言語ランタイムをスキップ
+
+# 後からでも単体で実行可能
+bash ~/dotfiles/bootstrap/install.sh    # symlinks のみ
+bash ~/dotfiles/bootstrap/brew.sh       # Homebrew パッケージのみ
+bash ~/dotfiles/bootstrap/languages.sh  # 言語ランタイムのみ
 ```
-
-### 📚 Documentation
-
-- [docs/ENVIRONMENTS.md](docs/ENVIRONMENTS.md) - Environment-specific setup
-- [docs/zsh-startup-optimization.md](docs/zsh-startup-optimization.md) - Optimization details
-
-### 🔒 Security
-
-Manage secrets in `.zshrc.local` (gitignore'd). Each machine maintains independent configuration.
 
 ---
 
-**MIT License**
+## リポジトリ構成
 
+```
+dotfiles/
+├── setup.sh                    # ← New Machine Setup はここから
+├── Brewfile                    # Homebrew パッケージ一覧
+├── bootstrap/
+│   ├── install.sh              # シンボリックリンク作成（冪等）
+│   ├── brew.sh                 # Brewfile インストール
+│   └── languages.sh            # 言語ランタイム（Volta/goenv/mise）
+├── shell/
+│   ├── zshenv                  # 環境変数（全シェル共通）
+│   ├── zshrc                   # メイン初期化・プラグイン
+│   ├── aliases.zsh             # 100+ エイリアス
+│   ├── functions.zsh           # 20+ ヘルパー関数
+│   └── .zshrc.local.example    # ローカル設定テンプレート（git 管理外）
+├── config/
+│   ├── starship.toml           # Starship プロンプト設定
+│   ├── wezterm/                # WezTerm 設定
+│   │   ├── wezterm.lua
+│   │   ├── keybinds.lua
+│   │   └── cheatsheet.md       # wh コマンドで表示
+│   ├── mise/config.toml        # mise（多言語バージョン管理）
+│   └── aws/config              # AWS CLI 設定
+├── claude/                     # Claude Code 設定（~/.config/claude にリンク）
+└── docs/
+    └── ENVIRONMENTS.md         # 環境別補足（Linux / DevContainer / SSH）
+```
+
+---
+
+## シンボリックリンク一覧
+
+`install.sh` が作成するリンクの対応表：
+
+| dotfiles | ホームディレクトリ |
+|----------|-----------------|
+| `shell/zshenv` | `~/.zshenv` |
+| `shell/zshrc` | `~/.zshrc` |
+| `.gitconfig` | `~/.gitconfig` |
+| `config/starship.toml` | `~/.config/starship.toml` |
+| `config/wezterm/` | `~/.config/wezterm/` |
+| `config/aws/config` | `~/.aws/config` |
+| `config/mise/config.toml` | `~/.config/mise/config.toml` |
+| `claude/` | `~/.config/claude/` |
+| `claude/CLAUDE.md` | `~/CLAUDE.md` |
+
+---
+
+## ローカル設定（~/.zshrc.local）
+
+git 管理外のファイル。マシン固有の設定・認証情報をここに書く。
+
+```bash
+# ~/.zshrc.local の例
+export AWS_PROFILE="my-profile"
+export GOOGLE_CLOUD_PROJECT="my-gcp-project"
+export GITHUB_TOKEN="ghp_..."
+
+# マシン固有エイリアス
+alias myproject='cd ~/dev/my-project'
+```
+
+テンプレート: `shell/.zshrc.local.example`
+
+---
+
+## プロンプト（Starship）
+
+```
+[ …/project ][ branch ✎? ][ ⎈ k8s-context ]     node 22  5s  23:45
+❯
+```
+
+- 左: ディレクトリ → git ブランチ/差分 → Kubernetes コンテキスト（接続中のみ）
+- 右: 言語バージョン（プロジェクトに入ったとき自動表示）→ コマンド実行時間 → 時刻
+- AWS / GCloud は常時非表示（プロジェクト作業中のみ手動で確認）
+
+---
+
+## よく使うコマンド
+
+| コマンド | 説明 |
+|---------|------|
+| `ff` | カレントのファイルを fzf で選択 → nvim で開く |
+| `fr` | ghq リポジトリ → ファイル → nvim で開く |
+| `Ctrl+]` | ghq リポジトリに fzf でジャンプ |
+| `Ctrl+E` | 最近訪問ディレクトリに fzf でジャンプ |
+| `wh` | WezTerm チートシートを表示 |
+
+---
+
+## セキュリティ
+
+- 認証情報・API キーは `~/.zshrc.local`（gitignore 済み）に記述
+- `~/.aws/credentials`、`~/.kube/config` はリポジトリ管理外
+- `.gitignore` でシークレット系ファイルを網羅的に除外済み
+
+---
+
+## トラブルシューティング
+
+```bash
+# symlink の確認
+readlink ~/.zshrc ~/.zshenv ~/.config/starship.toml
+
+# シェル起動時間の計測
+time zsh -i -c exit
+
+# zshrc を再読み込み
+exec zsh
+```

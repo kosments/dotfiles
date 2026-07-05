@@ -15,57 +15,34 @@
 
 ### セットアップ手順
 
-**1. Homebrew で必須ツールをインストール**
-
 ```bash
-brew install zsh git tmux nvim fzf peco ghq ripgrep bat eza
+# 1. クローン（~/dotfiles に固定）
+git clone https://github.com/kosments/dotfiles.git ~/dotfiles
+
+# 2. セットアップ実行
+bash ~/dotfiles/setup.sh
 ```
 
-**2. リポジトリをクローン**
+`setup.sh` が以下をすべて自動実行する：Homebrew インストール → シンボリックリンク → Brewfile パッケージ → 言語ランタイム → `~/.zshrc.local` 雛形作成
+
+**setup.sh 完了後**
 
 ```bash
-git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
-```
+# 1. 認証情報・環境固有設定を記入
+vi ~/.zshrc.local
 
-**3. シンボリックリンク作成**
+# 2. Neovim 設定をクローン（使う場合）
+git clone https://github.com/kosments/nvim-config.git ~/.config/nvim
 
-```bash
-# zsh 設定
-mkdir -p ~/.config/zsh
-ln -sf ~/.dotfiles/shell/zshrc ~/.zshrc
-ln -sf ~/.dotfiles/shell/zshenv ~/.zshenv
-ln -sf ~/.dotfiles/shell/.zshrc ~/.config/zsh/.zshrc
-
-# tmux 設定（オプション）
-ln -sf ~/.dotfiles/shell/.tmux.conf ~/.tmux.conf
-```
-
-**4. ローカル設定作成**
-
-```bash
-cp ~/.dotfiles/shell/.zshrc.local.example ~/.zshrc.local
-
-# 以下を編集：
-# - AWS_PROFILE, AWS_REGION
-# - GOOGLE_PROJECT_ID
-# - Kubernetes context
-# - API キー、トークン等
-```
-
-**5. シェル再起動**
-
-```bash
+# 3. 新しいシェルを起動
 exec zsh
 ```
 
 ### 検証
 
 ```bash
-# エイリアス確認
-alias | grep "^k="    # kubectl
-
-# 関数確認
-type k-pod-shell
+# symlink の確認
+readlink ~/.zshrc ~/.zshenv ~/.config/starship.toml
 
 # 起動時間計測
 time zsh -i -c exit
@@ -94,7 +71,7 @@ tar xzf peco_linux_amd64.tar.gz && sudo mv peco/peco /usr/local/bin
 **2. dotfiles をクローン**
 
 ```bash
-git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
+git clone https://github.com/kosments/dotfiles.git ~/dotfiles
 ```
 
 **3. シンボリックリンク作成**
@@ -110,7 +87,7 @@ chsh -s $(which zsh)
 **5. ローカル設定作成**
 
 ```bash
-cp ~/.dotfiles/shell/.zshrc.local.example ~/.zshrc.local
+cp ~/dotfiles/shell/.zshrc.local.example ~/.zshrc.local
 ```
 
 ### 注意事項
@@ -303,15 +280,15 @@ chmod +x /tmp/claude-code-init.sh
 echo "🔗 Setting up dotfiles..."
 
 # dotfiles ディレクトリを確認
-if [ ! -d ~/.dotfiles ]; then
+if [ ! -d ~/dotfiles ]; then
     if [ -d /home/vscode/.dotfiles ]; then
         export DOTFILES_PATH=/home/vscode/.dotfiles
     else
-        git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
-        export DOTFILES_PATH=~/.dotfiles
+        git clone https://github.com/kosments/dotfiles.git ~/dotfiles
+        export DOTFILES_PATH=~/dotfiles
     fi
 else
-    export DOTFILES_PATH=~/.dotfiles
+    export DOTFILES_PATH=~/dotfiles
 fi
 
 # zsh 設定をシンボリックリンク
@@ -399,7 +376,7 @@ if [ -f ~/.tmux.conf ]; then
     echo "✅ tmux.conf found"
     tmux -c ~/.tmux.conf source-file ~/.tmux.conf 2>/dev/null || true
 else
-    echo "⚠️  tmux.conf not found. Create ~/.dotfiles/shell/.tmux.conf or use defaults"
+    echo "⚠️  tmux.conf not found. Create ~/dotfiles/shell/.tmux.conf or use defaults"
 fi
 
 # ============================================================
@@ -512,21 +489,21 @@ git stash
 ssh user@server.example.com
 
 # サーバー上で
-git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
+git clone https://github.com/kosments/dotfiles.git ~/dotfiles
 ```
 
 **2. シンボリックリンク作成**
 
 ```bash
 mkdir -p ~/.config/zsh
-ln -sf ~/.dotfiles/shell/zshrc ~/.zshrc
-ln -sf ~/.dotfiles/shell/zshenv ~/.zshenv
+ln -sf ~/dotfiles/shell/zshrc ~/.zshrc
+ln -sf ~/dotfiles/shell/zshenv ~/.zshenv
 ```
 
 **3. ローカル設定作成**
 
 ```bash
-cp ~/.dotfiles/shell/.zshrc.local.example ~/.zshrc.local
+cp ~/dotfiles/shell/.zshrc.local.example ~/.zshrc.local
 # サーバー固有の設定を編集
 ```
 
@@ -578,8 +555,8 @@ COPY dotfiles /root/.dotfiles
 
 # セットアップ
 RUN mkdir -p ~/.config/zsh && \
-    ln -sf ~/.dotfiles/shell/zshrc ~/.zshrc && \
-    ln -sf ~/.dotfiles/shell/zshenv ~/.zshenv && \
+    ln -sf ~/dotfiles/shell/zshrc ~/.zshrc && \
+    ln -sf ~/dotfiles/shell/zshenv ~/.zshenv && \
     chsh -s /bin/zsh
 
 # TERM 設定
@@ -599,7 +576,7 @@ docker build -t mydev .
 
 ```bash
 docker run -it \
-  -v ~/.dotfiles:/root/.dotfiles \
+  -v ~/dotfiles:/root/.dotfiles \
   -v ~/.zshrc.local:/root/.zshrc.local \
   -e TERM=xterm-256color \
   mydev
@@ -627,8 +604,8 @@ kubectl config use-context rancher-desktop
 kubectl run -it --rm debug --image=ubuntu:22.04 -- bash
 
 # コンテナ内で dotfiles をセットアップ
-git clone https://github.com/kosments/dotfiles.git ~/.dotfiles
-ln -sf ~/.dotfiles/shell/zshrc ~/.zshrc
+git clone https://github.com/kosments/dotfiles.git ~/dotfiles
+ln -sf ~/dotfiles/shell/zshrc ~/.zshrc
 ```
 
 ### Docker 環境での TERM 設定
@@ -685,7 +662,7 @@ export COLORTERM=truecolor
 
 ```bash
 # 確認: リモートで dotfiles がインストール済みか
-ls ~/.dotfiles/shell/aliases.zsh
+ls ~/dotfiles/shell/aliases.zsh
 
 # ~/.zshrc が正しく symlink されているか
 readlink ~/.zshrc
@@ -731,7 +708,7 @@ export GIT_SSH_COMMAND="ssh -i ~/.ssh/id_rsa"
 4. **定期的に同期**
    ```bash
    # 各マシンで定期的に pull
-   cd ~/.dotfiles && git pull
+   cd ~/dotfiles && git pull
    ```
 
 ---
